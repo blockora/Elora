@@ -1106,7 +1106,7 @@ A deterministic website rendering engine.
 
 ## PHASE 3 — Backend API and Real AI Generation
 
-Status: [ ] Not started
+Status: [ ] In progress — request/response contracts, a provider interface, deterministic mock provider, and Vite development-only health/generation routes are implemented and tested. No production API server, hosted provider, credentials, rate limiting, or frontend generation integration exists yet.
 
 ### Objectives
 
@@ -1114,26 +1114,26 @@ Connect the frontend to a real AI provider without exposing credentials.
 
 ### Tasks
 
-- [ ] Create the API application.
-- [ ] Add a health endpoint.
-- [ ] Define API request and response schemas.
-- [ ] Create the AI provider interface.
-- [ ] Implement the mock provider.
+- [x] Create a development API handler and Vite-only route adapter (production server remains outstanding).
+- [x] Add a development health endpoint.
+- [x] Define generation request and response schemas.
+- [x] Create the provider interface.
+- [x] Implement a deterministic mock provider for development/tests (not production generation).
 - [ ] Implement the first supported hosted AI provider.
 - [ ] Configure server-side credentials.
-- [ ] Implement the generation endpoint.
-- [ ] Validate prompts.
-- [ ] Call the AI provider.
-- [ ] Parse the structured response.
-- [ ] Validate the response.
+- [x] Implement the development mock generation endpoint (hosted-provider endpoint remains outstanding).
+- [x] Validate prompt shape and length at the API boundary.
+- [ ] Call the AI provider (the dev endpoint uses only the deterministic mock).
+- [x] Parse provider output as untrusted data.
+- [x] Validate provider output with the WebsiteSpec schema before responding.
 - [ ] Add bounded error recovery.
 - [ ] Add request timeouts.
 - [ ] Add rate limiting.
 - [ ] Map provider errors to user-friendly responses.
-- [ ] Connect the frontend's Build button.
+- [ ] Connect the frontend's Build button to a hosted-provider backend (mock endpoint is not wired into the UI).
 - [ ] Add generation progress indicators.
 - [ ] Test exhausted quota scenarios.
-- [ ] Test invalid provider responses.
+- [x] Test malformed JSON and invalid provider outputs.
 
 ### Definition of done
 
@@ -1831,7 +1831,7 @@ This section must be updated as work is completed.
 - [ ] Builder UI completed (responsive landing and builder prototype exist; full roadmap acceptance criteria remain outstanding).
 - [x] Website schema defined and tested (renderer remains outstanding).
 - [x] Website renderer completed for validated specs; AI generation remains unimplemented.
-- [ ] AI provider interface completed.
+- [x] AI provider interface and deterministic mock API foundation completed; hosted provider remains outstanding.
 - [ ] Real AI generation working.
 - [ ] AI editing working.
 - [ ] Project versioning working.
