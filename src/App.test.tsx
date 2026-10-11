@@ -10,10 +10,39 @@ afterEach(() => {
 })
 
 describe('builder prototype', () => {
-  it('renders the prompt editor, examples, and clearly marked preview', () => {
+  it('shows an informative landing page and main navigation', () => {
     render(<App />)
 
+    expect(
+      screen.getByRole('navigation', { name: 'Main navigation' }),
+    ).toBeTruthy()
+    expect(
+      screen.getByRole('heading', { name: /from a thought/i }),
+    ).toBeTruthy()
+    expect(
+      screen.getByRole('link', { name: 'How it works' }).getAttribute('href'),
+    ).toBe('#how-it-works')
+    expect(
+      screen.getByRole('link', { name: 'Examples' }).getAttribute('href'),
+    ).toBe('#examples')
+    expect(document.getElementById('examples')).toBeTruthy()
+    expect(screen.getByText(/AI generation is not connected/i)).toBeTruthy()
+  })
+
+  it('opens the builder from the landing-page primary action', () => {
+    render(<App />)
+    fireEvent.click(
+      screen.getByRole('button', { name: /start with a prompt/i }),
+    )
+
+    expect(screen.getByRole('heading', { name: 'Your canvas' })).toBeTruthy()
     expect(screen.getByLabelText('Describe your website')).toBeTruthy()
+  })
+
+  it('renders prompt examples and a clearly marked sample preview in the builder', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
+
     expect(
       screen.getByRole('button', { name: /cozy neighborhood bakery/i }),
     ).toBeTruthy()
@@ -22,8 +51,9 @@ describe('builder prototype', () => {
     expect(screen.getByText(/AI generation isn’t connected/i)).toBeTruthy()
   })
 
-  it('copies an example into the prompt without starting generation', () => {
+  it('copies an example into the prompt without starting the demo', () => {
     render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
     fireEvent.click(
       screen.getByRole('button', { name: /cozy neighborhood bakery/i }),
     )
@@ -32,12 +62,12 @@ describe('builder prototype', () => {
       'value',
       'A cozy neighborhood bakery with an artisan menu',
     )
-    expect(screen.getByRole('heading', { name: 'Your canvas' })).toBeTruthy()
     expect(screen.queryByText(/Demo preview updated locally/i)).toBeNull()
   })
 
-  it('shows an accessible error when submitted empty', () => {
+  it('shows an accessible error when the prompt is empty', () => {
     render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
     fireEvent.click(
       screen.getByRole('button', { name: /show sample preview/i }),
     )
@@ -47,10 +77,11 @@ describe('builder prototype', () => {
     )
   })
 
-  it('updates the sample preview from a prompt without a network request', () => {
+  it('updates sample preview text locally without making a network request', () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
     vi.useFakeTimers()
     render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
     fireEvent.change(screen.getByLabelText('Describe your website'), {
       target: { value: 'A quiet garden shop' },
     })
@@ -68,6 +99,5 @@ describe('builder prototype', () => {
     ).toBeTruthy()
     expect(screen.getByText(/No AI was used/i)).toBeTruthy()
     expect(fetchSpy).not.toHaveBeenCalled()
-    vi.useRealTimers()
   })
 })

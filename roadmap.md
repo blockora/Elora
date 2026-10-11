@@ -1026,7 +1026,7 @@ A reproducible development foundation.
 
 ## PHASE 1 — Product UI and Static Prototype
 
-Status: [ ] In progress — responsive two-panel builder prototype, example prompts, local sample preview, and accessible prompt feedback implemented. Landing-page content and broader UI acceptance criteria remain incomplete.
+Status: [ ] In progress — responsive landing screen and builder prototype, semantic navigation, examples, local sample preview, and accessible feedback are implemented. Broader UI acceptance criteria remain incomplete.
 
 ### Objectives
 
@@ -1034,8 +1034,8 @@ Build the main interface before connecting a real AI provider.
 
 ### Tasks
 
-- [ ] Create the landing page.
-- [ ] Create the main navigation.
+- [x] Create the landing page (prototype introduction, illustrative sample, and how-it-works section).
+- [x] Create the main navigation (landing anchors and builder entry actions).
 - [x] Create the prompt input.
 - [x] Add sample prompts.
 - [x] Create the builder layout (responsive assistant and preview panels).
@@ -1828,7 +1828,7 @@ This section must be updated as work is completed.
 
 ## MVP
 
-- [ ] Builder UI completed (initial responsive shell exists; full roadmap acceptance criteria remain outstanding).
+- [ ] Builder UI completed (responsive landing and builder prototype exist; full roadmap acceptance criteria remain outstanding).
 - [ ] Website schema defined.
 - [ ] Website renderer completed.
 - [ ] AI provider interface completed.

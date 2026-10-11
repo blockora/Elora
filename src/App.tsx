@@ -30,10 +30,108 @@ function createDemoResult(prompt: string): DemoResult {
   }
 }
 
+function LandingPage({ onStart }: { onStart: () => void }) {
+  return (
+    <main className="landing-shell">
+      <header className="landing-nav">
+        <a className="brand" href="#home" aria-label="Elora home">
+          elora<span>.</span>
+        </a>
+        <nav aria-label="Main navigation">
+          <a href="#how-it-works">How it works</a>
+          <a href="#examples">Examples</a>
+          <button className="nav-cta" onClick={onStart} type="button">
+            Open the builder <span aria-hidden="true">↗</span>
+          </button>
+        </nav>
+      </header>
+
+      <section
+        className="landing-hero"
+        id="home"
+        aria-labelledby="landing-title"
+      >
+        <p className="eyebrow">A WEBSITE BUILDER FOR YOUR NEXT IDEA</p>
+        <h1 id="landing-title">
+          From a thought
+          <br />
+          to <em>something real.</em>
+        </h1>
+        <p className="landing-description">
+          Describe the website you imagine. Shape the idea, see a preview, and
+          make it yours.
+        </p>
+        <button className="landing-cta" onClick={onStart} type="button">
+          Start with a prompt <span aria-hidden="true">↗</span>
+        </button>
+        <p className="landing-disclaimer">
+          Early prototype · Sample preview only · AI generation is not connected
+        </p>
+        <div
+          className="landing-preview"
+          aria-label="Illustrative sample website"
+        >
+          <span className="landing-preview-label">A SAMPLE WEBSITE CANVAS</span>
+          <div className="landing-preview-card">
+            <span>STUDIO / 01</span>
+            <h2>
+              Make room for
+              <br />
+              <em>something lovely.</em>
+            </h2>
+            <p>A thoughtful starting point for your next idea.</p>
+            <span className="preview-decoration" aria-hidden="true" />
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="how-section"
+        id="how-it-works"
+        aria-labelledby="how-title"
+      >
+        <p className="eyebrow">A SIMPLE PLACE TO BEGIN</p>
+        <h2 id="how-title">Your idea comes first.</h2>
+        <div className="how-cards" id="examples">
+          <article>
+            <span>01</span>
+            <h3>Describe it</h3>
+            <p>Start with a few words about the site you want to make.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Explore a direction</h3>
+            <p>
+              Elora’s prototype lets you try a prompt and see a sample layout.
+            </p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Keep shaping it</h3>
+            <p>
+              Real generation and editing are part of the roadmap, not available
+              yet.
+            </p>
+          </article>
+        </div>
+      </section>
+      <footer className="landing-footer">
+        <span>Elora · An early prototype</span>
+        <span>No AI requests · No accounts · No saved projects</span>
+      </footer>
+    </main>
+  )
+}
+
 export function App() {
+  const [page, setPage] = useState<'landing' | 'builder'>('landing')
   const [prompt, setPrompt] = useState('')
   const [preview, setPreview] = useState<DemoResult | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+
+  if (page === 'landing') {
+    return <LandingPage onStart={() => setPage('builder')} />
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -54,7 +152,15 @@ export function App() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Elora home">
+        <a
+          className="brand"
+          href="#home"
+          onClick={(event) => {
+            event.preventDefault()
+            setPage('landing')
+          }}
+          aria-label="Elora home"
+        >
           elora<span>.</span>
         </a>
         <div className="project-label">

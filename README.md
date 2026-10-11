@@ -1,6 +1,6 @@
 # Elora
 
-Elora is a free-first AI website builder in an early prototype stage. The current responsive builder shell has an assistant panel, examples, and a labeled sample preview. Submitting a prompt updates sample text locally; it does not generate a real website, use AI, save data, or send prompts over the network. No AI provider or credentials are required.
+Elora is a free-first AI website builder in an early prototype stage. The current responsive landing page introduces the prototype, and the builder has an assistant panel, examples, and a labeled sample preview. Submitting a prompt updates sample text locally; it does not generate a real website, use AI, save data, or send prompts over the network. No AI provider or credentials are required.
 
 ## Requirements
 
