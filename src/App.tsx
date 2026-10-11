@@ -1,7 +1,19 @@
-import { useState, type FormEvent, useCallback } from 'react'
+import { useState, type FormEvent, useCallback, useRef } from 'react'
 import { WebsiteRenderer } from './features/website/WebsiteRenderer'
 import { restaurantWebsite } from './features/website/examples'
 import { type WebsiteSpec } from './features/website/schema'
+import {
+  createProjectState,
+  type ProjectState,
+  updateProjectName,
+  applyEdit,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+  getVersionHistory,
+  restoreVersion,
+} from './lib/projectState'
 
 const examples = [
   'A cozy neighborhood bakery with an artisan menu',
@@ -119,12 +131,22 @@ function createDemoSpec(prompt: string): WebsiteSpec {
 export function App() {
   const [page, setPage] = useState<'landing' | 'builder'>('landing')
   const [prompt, setPrompt] = useState('')
-  const [preview, setPreview] = useState<WebsiteSpec>(restaurantWebsite)
-  const [previewPrompt, setPreviewPrompt] = useState<string | null>(null)
+  const [projectName, setProjectName] = useState('Untitled project')
+  const [lastPrompt, setLastPrompt] = useState<string | null>(null)
+  const [project, setProject] = useState<ProjectState>(() =>
+    createProjectState({ initialSpec: restaurantWebsite }),
+  )
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
   >('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [editStatus, setEditStatus] = useState<
+    'idle' | 'loading' | 'success' | 'error'
+  >('idle')
+  const [editMessage, setEditMessage] = useState<string | null>(null)
+  const [editInstruction, setEditInstruction] = useState('')
+  const [showVersionHistory, setShowVersionHistory] = useState(false)
+  const isGeneratingRef = useRef(false)
 
   // Check if API is configured (in production) or running in demo mode
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
@@ -133,6 +155,9 @@ export function App() {
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault()
+
+      if (isGeneratingRef.current) return
+
       const nextPrompt = prompt.trim()
       if (!nextPrompt) {
         setStatus('error')
@@ -142,13 +167,20 @@ export function App() {
 
       setStatus('loading')
       setErrorMessage(null)
+      isGeneratingRef.current = true
 
       if (!isApiConfigured) {
         // Local demo mode - no API configured
         window.setTimeout(() => {
-          setPreview(createDemoSpec(nextPrompt))
-          setPreviewPrompt(nextPrompt)
+          const newSpec = createDemoSpec(nextPrompt)
+          setProject(
+            applyEdit(project, newSpec, `Generated from: "${nextPrompt}"`)
+              .state,
+          )
+          setProjectName(nextPrompt.slice(0, 80) || 'Untitled project')
+          setLastPrompt(nextPrompt)
           setStatus('success')
+          isGeneratingRef.current = false
         }, 180)
         return
       }
@@ -167,8 +199,12 @@ export function App() {
           throw new Error(data.error?.message || 'Generation failed')
         }
 
-        setPreview(data.spec)
-        setPreviewPrompt(nextPrompt)
+        setProject(
+          applyEdit(project, data.spec, `Generated from: "${nextPrompt}"`)
+            .state,
+        )
+        setProjectName(nextPrompt.slice(0, 80) || 'Untitled project')
+        setLastPrompt(nextPrompt)
         setStatus('success')
       } catch (error) {
         setStatus('error')
@@ -177,10 +213,145 @@ export function App() {
             ? error.message
             : 'An unexpected error occurred',
         )
+      } finally {
+        isGeneratingRef.current = false
       }
     },
-    [prompt, apiBaseUrl, isApiConfigured],
+    [prompt, project, apiBaseUrl, isApiConfigured],
   )
+
+  const handleEdit = useCallback(async () => {
+    const instruction = editInstruction.trim()
+    if (!instruction) {
+      setEditMessage('Add an edit instruction first.')
+      setEditStatus('error')
+      return
+    }
+
+    setEditStatus('loading')
+    setEditMessage(null)
+
+    if (!isApiConfigured) {
+      // Local demo mode - simulate edit
+      window.setTimeout(() => {
+        const updatedSpec = {
+          ...project.currentSpec,
+          sections: project.currentSpec.sections.map((section) => {
+            if (section.type === 'hero') {
+              return {
+                ...section,
+                title:
+                  instruction.length > 20
+                    ? instruction
+                    : `Updated: ${instruction}`,
+              }
+            }
+            return section
+          }),
+        }
+        const result = applyEdit(project, updatedSpec, `Edit: "${instruction}"`)
+        setProject(result.state)
+        setEditStatus('success')
+        setEditMessage(result.error || 'Edit applied locally.')
+        setEditInstruction('')
+      }, 200)
+      return
+    }
+
+    try {
+      // Call the real API edit endpoint
+      const response = await fetch(`${apiBaseUrl}/api/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentSpec: project.currentSpec,
+          instruction,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Edit failed')
+      }
+
+      const result = applyEdit(
+        project,
+        data.spec,
+        data.changeSummary || `Edit: "${instruction}"`,
+      )
+      setProject(result.state)
+      setEditStatus('success')
+      setEditMessage(result.error || 'Edit applied successfully.')
+      setEditInstruction('')
+    } catch (error) {
+      setEditStatus('error')
+      setEditMessage(
+        error instanceof Error ? error.message : 'An unexpected error occurred',
+      )
+    }
+  }, [editInstruction, project, apiBaseUrl, isApiConfigured])
+
+  const handleUndo = useCallback(() => {
+    const result = undo(project)
+    if (result.error) {
+      setEditMessage(result.error)
+      setEditStatus('error')
+    } else {
+      setProject(result.state)
+      setEditStatus('success')
+      setEditMessage('Restored previous version.')
+    }
+  }, [project])
+
+  const handleRedo = useCallback(() => {
+    const result = redo(project)
+    if (result.error) {
+      setEditMessage(result.error)
+      setEditStatus('error')
+    } else {
+      setProject(result.state)
+      setEditStatus('success')
+      setEditMessage('Restored newer version.')
+    }
+  }, [project])
+
+  const handleRestoreVersion = useCallback(
+    (versionNumber: number) => {
+      const result = restoreVersion(project, versionNumber)
+      if (result.error) {
+        setEditMessage(result.error)
+        setEditStatus('error')
+      } else {
+        setProject(result.state)
+        setEditStatus('success')
+        setEditMessage(`Restored version ${versionNumber}.`)
+        setShowVersionHistory(false)
+      }
+    },
+    [project],
+  )
+
+  const handleNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newName = e.target.value
+      setProjectName(newName)
+      setProject(updateProjectName(project, newName))
+    },
+    [project],
+  )
+
+  const handleNameBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      // Update project name when blurred
+      const result = updateProjectName(project, e.target.value)
+      setProject(result)
+      setProjectName(result.name)
+    },
+    [project],
+  )
+
+  const history = getVersionHistory(project)
 
   if (page === 'landing') {
     return <LandingPage onStart={() => setPage('builder')} />
@@ -201,12 +372,60 @@ export function App() {
           elora<span>.</span>
         </a>
         <div className="project-label">
-          <span className="status-dot" />
-          Untitled project <span className="demo-label">DEMO</span>
+          {showVersionHistory ? (
+            <button
+              className="version-panel-btn"
+              onClick={() => setShowVersionHistory(false)}
+              type="button"
+            >
+              ← Back to editor
+            </button>
+          ) : (
+            <>
+              <span className="status-dot" />
+              <input
+                className="project-name-input"
+                value={projectName}
+                onChange={handleNameChange}
+                onBlur={handleNameBlur}
+                aria-label="Project name"
+              />
+              <span className="demo-label">DEMO</span>
+            </>
+          )}
         </div>
-        <a className="top-link" href="#prompt">
-          New idea <span aria-hidden="true">↗</span>
-        </a>
+        <div className="topbar-actions">
+          {!showVersionHistory && (
+            <>
+              <button
+                className={`top-link ${canRedo(project) ? '' : 'disabled'}`}
+                onClick={handleRedo}
+                disabled={!canRedo(project)}
+                type="button"
+                title={canRedo(project) ? 'Redo' : 'Nothing to redo'}
+              >
+                Redo <span aria-hidden="true">↗</span>
+              </button>
+              <button
+                className={`top-link ${canUndo(project) ? '' : 'disabled'}`}
+                onClick={handleUndo}
+                disabled={!canUndo(project)}
+                type="button"
+                title={canUndo(project) ? 'Undo' : 'Nothing to undo'}
+              >
+                Undo <span aria-hidden="true">↗</span>
+              </button>
+              <button
+                className="top-link"
+                onClick={() => setShowVersionHistory(true)}
+                type="button"
+                title="Version history"
+              >
+                History <span aria-hidden="true">↗</span>
+              </button>
+            </>
+          )}
+        </div>
       </header>
 
       <div className="workspace">
@@ -229,14 +448,24 @@ export function App() {
                 </p>
               </div>
             </div>
-            {previewPrompt && (
+            {lastPrompt && (
               <div className="user-message">
                 <span className="message-label">YOUR IDEA</span>
-                <p>{previewPrompt}</p>
+                <p>{lastPrompt}</p>
                 <span className="demo-notice">
                   {isApiConfigured
                     ? 'AI-generated preview.'
                     : 'Local sample only. No AI was used.'}
+                </span>
+              </div>
+            )}
+            {project.versions.length > 0 && (
+              <div className="version-indicator">
+                <span className="version-badge">
+                  v{history[history.length - 1].version}
+                </span>
+                <span className="version-summary">
+                  {history[history.length - 1].changeSummary}
                 </span>
               </div>
             )}
@@ -257,6 +486,21 @@ export function App() {
                 {isApiConfigured
                   ? 'Website generated successfully!'
                   : 'Sample preview updated locally.'}
+              </p>
+            )}
+            {editStatus === 'error' && (
+              <p className="form-error" role="alert">
+                {editMessage || 'An edit error occurred.'}
+              </p>
+            )}
+            {editStatus === 'loading' && (
+              <p className="loading-message" role="status">
+                {isApiConfigured ? 'Applying edit…' : 'Applying edit locally…'}
+              </p>
+            )}
+            {editStatus === 'success' && editMessage && (
+              <p className="success-message" role="status">
+                {editMessage}
               </p>
             )}
           </div>
@@ -284,7 +528,10 @@ export function App() {
               </span>
               <span id="prompt-count">{prompt.length}/500</span>
             </div>
-            <button type="submit" disabled={status === 'loading'}>
+            <button
+              type="submit"
+              disabled={status === 'loading' || isGeneratingRef.current}
+            >
               {status === 'loading'
                 ? isApiConfigured
                   ? 'Generating…'
@@ -293,6 +540,33 @@ export function App() {
               <span aria-hidden="true">↗</span>
             </button>
           </form>
+
+          <div className="edit-section">
+            <label htmlFor="edit-input">Edit your website</label>
+            <div className="edit-form-row">
+              <textarea
+                id="edit-input"
+                value={editInstruction}
+                onChange={(e) => setEditInstruction(e.target.value)}
+                rows={2}
+                maxLength={500}
+                placeholder="e.g., Make the hero section darker"
+                aria-describedby="edit-help"
+              />
+              <button
+                type="button"
+                onClick={handleEdit}
+                disabled={editStatus === 'loading'}
+              >
+                {editStatus === 'loading' ? 'Editing…' : 'Apply edit'}{' '}
+                <span aria-hidden="true">↗</span>
+              </button>
+            </div>
+            <span id="edit-help">
+              Suggest changes to your existing website. This uses AI when
+              configured.
+            </span>
+          </div>
 
           <div className="examples" aria-label="Example prompts">
             <span className="examples-title">NEED A STARTING POINT?</span>
@@ -335,7 +609,7 @@ export function App() {
               className="rendered-preview"
               aria-label="Validated website preview"
             >
-              <WebsiteRenderer spec={preview} />
+              <WebsiteRenderer spec={project.currentSpec} />
             </div>
           </div>
           <p className="preview-footnote">
@@ -345,6 +619,40 @@ export function App() {
           </p>
         </section>
       </div>
+
+      {showVersionHistory && (
+        <div className="version-history-overlay">
+          <div className="version-history-panel">
+            <h2>Version History</h2>
+            <div className="version-list">
+              {history.map((version, index) => (
+                <button
+                  key={version.version}
+                  className={`version-item ${index === history.length - 1 ? 'current' : ''}`}
+                  onClick={() => handleRestoreVersion(version.version)}
+                  type="button"
+                >
+                  <span className="version-number">v{version.version}</span>
+                  <span className="version-date">
+                    {new Date(version.createdAt).toLocaleString()}
+                  </span>
+                  <span className="version-summary">
+                    {version.changeSummary}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <button
+              className="close-history-btn"
+              onClick={() => setShowVersionHistory(false)}
+              type="button"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <footer className="app-footer">
         <span>Elora is an early prototype.</span>
         <span>

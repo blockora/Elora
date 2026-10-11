@@ -791,3 +791,253 @@ textarea:focus-visible {
   border-radius: 3px;
   background: #fffdf9;
 }
+
+/* Project state and editing styles */
+.project-name-input {
+  border: 0;
+  background: transparent;
+  color: #c9c2be;
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.project-name-input:focus {
+  outline: 2px solid #e8ae86;
+  outline-offset: 2px;
+  background: #1b191d;
+}
+
+.topbar-actions {
+  justify-self: end;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.topbar-actions .top-link {
+  justify-self: auto;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #393438;
+  color: #d7b49e;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topbar-actions .top-link:hover:not(.disabled) {
+  background: #2a2629;
+  border-color: #5a4f4a;
+}
+
+.topbar-actions .top-link.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.version-indicator {
+  margin: 10px 0 14px 37px;
+  padding: 8px 12px;
+  background: #1d1a1e;
+  border: 1px solid #393337;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.version-badge {
+  background: #d99b72;
+  color: #211a17;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.version-summary {
+  color: #aaa5a1;
+  font-size: 10px;
+}
+
+.edit-section {
+  margin-top: 22px;
+  padding: 15px;
+  border: 1px solid #3a3539;
+  border-radius: 12px;
+  background: #1b191d;
+  box-shadow: 0 18px 50px #0003;
+}
+
+.edit-section label {
+  display: block;
+  margin: 0 0 8px;
+  color: #d1c8c3;
+  font-size: 10px;
+}
+
+.edit-form-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.edit-form-row textarea {
+  flex: 1;
+  min-height: 60px;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  color: #f5f2ee;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.65;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.edit-form-row textarea::placeholder {
+  color: #777176;
+}
+
+.edit-form-row button {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 7px;
+  background: #d99b72;
+  padding: 10px 14px;
+  color: #211a17;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  height: fit-content;
+  margin-top: 4px;
+}
+
+.edit-form-row button:hover:not(:disabled) {
+  background: #e8ae86;
+}
+
+.edit-form-row button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.edit-section > span {
+  display: block;
+  color: #79737a;
+  font-size: 9px;
+  margin-top: 8px;
+}
+
+/* Version history panel */
+.version-history-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.version-history-panel {
+  background: #1b191d;
+  border: 1px solid #393438;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.version-history-panel h2 {
+  margin: 0 0 16px;
+  color: #f5f2ee;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.version-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid #393438;
+  border-radius: 8px;
+  background: transparent;
+  color: #c9c2be;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.version-item:hover {
+  background: #2a2629;
+  border-color: #5a4f4a;
+}
+
+.version-item.current {
+  border-color: #d99b72;
+  background: rgba(217, 155, 114, 0.1);
+}
+
+.version-number {
+  display: inline-block;
+  background: #d99b72;
+  color: #211a17;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+.version-date {
+  color: #898187;
+  font-size: 10px;
+  margin-right: 10px;
+}
+
+.version-summary {
+  color: #d7b49e;
+  font-size: 11px;
+  display: block;
+  margin-top: 4px;
+}
+
+.close-history-btn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #393438;
+  border-radius: 8px;
+  background: transparent;
+  color: #d7b49e;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.close-history-btn:hover {
+  background: #2a2629;
+  border-color: #5a4f4a;
+}

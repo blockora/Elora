@@ -128,4 +128,130 @@ describe('API handler', () => {
       error: { code: 'EDIT_PROVIDER_NOT_CONFIGURED' },
     })
   })
+
+  it('maps provider quota errors to QUOTA_EXCEEDED response', async () => {
+    const quotaProvider: AIProvider & { editWebsite?: never } = {
+      generateWebsite: vi
+        .fn()
+        .mockRejectedValue(new Error('Free quota exceeded for this project')),
+    }
+    const handler = createApiHandler({ provider: quotaProvider })
+    const response = await handler(post({ prompt: 'A bakery' }))
+    expect(response.status).toBe(503)
+    const payload = await response.json()
+    expect(payload).toMatchObject({
+      error: { code: 'QUOTA_EXCEEDED' },
+    })
+    expect(payload.error.message).toContain('temporarily unavailable')
+  })
+
+  it('maps provider authentication errors to PROVIDER_AUTH_ERROR response', async () => {
+    const authProvider: AIProvider & { editWebsite?: never } = {
+      generateWebsite: vi
+        .fn()
+        .mockRejectedValue(new Error('API key not valid')),
+    }
+    const handler = createApiHandler({ provider: authProvider })
+    const response = await handler(post({ prompt: 'A bakery' }))
+    expect(response.status).toBe(502)
+    const payload = await response.json()
+    expect(payload).toMatchObject({
+      error: { code: 'PROVIDER_AUTH_ERROR' },
+    })
+  })
+
+  it('maps rate limit errors from provider to RATE_LIMIT_EXCEEDED response', async () => {
+    const rateLimitProvider: AIProvider & { editWebsite?: never } = {
+      generateWebsite: vi
+        .fn()
+        .mockRejectedValue(new Error('Rate limit exceeded, please slow down')),
+    }
+    const handler = createApiHandler({ provider: rateLimitProvider })
+    const response = await handler(post({ prompt: 'A bakery' }))
+    expect(response.status).toBe(429)
+    const payload = await response.json()
+    expect(payload).toMatchObject({
+      error: { code: 'RATE_LIMIT_EXCEEDED' },
+    })
+  })
+
+  it('returns GENERATION_TIMEOUT when provider exceeds timeout', async () => {
+    const slowProvider: AIProvider & { editWebsite?: never } = {
+      generateWebsite: vi.fn().mockImplementation(() => {
+        return new Promise((_, reject) => {
+          setTimeout(
+            () =>
+              reject(
+                new DOMException('The operation was aborted.', 'AbortError'),
+              ),
+            100,
+          )
+        })
+      }),
+    }
+    const handler = createApiHandler({
+      provider: slowProvider,
+      timeoutMs: 50,
+    })
+    const response = await handler(post({ prompt: 'A bakery' }))
+    expect(response.status).toBe(504)
+    const payload = await response.json()
+    expect(payload).toMatchObject({
+      error: { code: 'GENERATION_TIMEOUT' },
+    })
+  })
+
+  it('maps edit provider quota errors to QUOTA_EXCEEDED response', async () => {
+    const quotaEditProvider = {
+      editWebsite: vi
+        .fn()
+        .mockRejectedValue(new Error('Free quota exceeded for this project')),
+    }
+    const handler = createApiHandler({
+      provider: new MockAIProvider(),
+      editProvider: quotaEditProvider as never,
+    })
+    const response = await handler(
+      editPost({
+        currentSpec: {
+          name: 'Test',
+          description: 'Test',
+          theme: restaurantWebsite.theme,
+          sections: restaurantWebsite.sections,
+        },
+        instruction: 'Change something',
+      }),
+    )
+    expect(response.status).toBe(503)
+    const payload = await response.json()
+    expect(payload).toMatchObject({
+      error: { code: 'QUOTA_EXCEEDED' },
+    })
+  })
+
+  it('handles malformed AI response in edit endpoint', async () => {
+    const brokenEditProvider = {
+      editWebsite: vi.fn().mockResolvedValue({ invalid: 'spec' }),
+    }
+    const handler = createApiHandler({
+      provider: new MockAIProvider(),
+      editProvider: brokenEditProvider as never,
+    })
+    const response = await handler(
+      editPost({
+        currentSpec: {
+          name: 'Test',
+          description: 'Test',
+          theme: restaurantWebsite.theme,
+          sections: restaurantWebsite.sections,
+        },
+        instruction: 'Change something',
+      }),
+    )
+    expect(response.status).toBe(502)
+    const payload = await response.json()
+    expect(payload).toMatchObject({
+      error: { code: 'EDIT_FAILED' },
+    })
+  })
 })
