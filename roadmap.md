@@ -1220,7 +1220,7 @@ Basic project version history.
 
 ## PHASE 6 — ZIP Export
 
-Status: [ ] Not started
+Status: [x] Complete — standalone React project template created, ZIP generation working, export validation included, download integrated with frontend, comprehensive tests passing.
 
 ### Objectives
 
@@ -1228,18 +1228,18 @@ Give users ownership of a downloadable website project.
 
 ### Tasks
 
-- [ ] Create a standalone React project template.
-- [ ] Define generated project files.
-- [ ] Map the website specification to export files.
-- [ ] Include the required dependencies.
-- [ ] Include the stylesheet.
-- [ ] Include public assets when supported.
-- [ ] Create a project README.
-- [ ] Generate the ZIP archive.
-- [ ] Add download progress and error handling.
-- [ ] Add archive validity tests.
-- [ ] Test installation and production builds.
-- [ ] Verify that secrets are not included.
+- [x] Create a standalone React project template.
+- [x] Define generated project files.
+- [x] Map the website specification to export files.
+- [x] Include the required dependencies.
+- [x] Include the stylesheet.
+- [x] Include public assets when supported.
+- [x] Create a project README.
+- [x] Generate the ZIP archive.
+- [x] Add download progress and error handling.
+- [x] Add archive validity tests.
+- [x] Test installation and production builds.
+- [x] Verify that secrets are not included.
 
 ### Definition of done
 
@@ -1836,7 +1836,7 @@ This section must be updated as work is completed.
 - [x] Real AI generation working (Gemini provider implemented; requires API key for production use).
 - [x] AI editing working (edit endpoint implemented; frontend integrated with /api/edit; local demo mode included).
 - [x] Project versioning working (version history, undo/redo, restore implemented).
-- [ ] ZIP export working.
+- [x] ZIP export working.
 - [ ] Authentication implemented.
 - [ ] Cloud project storage working.
 - [ ] Security tests passing.
