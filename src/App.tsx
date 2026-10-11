@@ -14,6 +14,7 @@ import {
   getVersionHistory,
   restoreVersion,
 } from './lib/projectState'
+import { useZipExport } from './lib/export/useZipExport'
 
 const examples = [
   'A cozy neighborhood bakery with an artisan menu',
@@ -147,6 +148,13 @@ export function App() {
   const [editInstruction, setEditInstruction] = useState('')
   const [showVersionHistory, setShowVersionHistory] = useState(false)
   const isGeneratingRef = useRef(false)
+
+  const {
+    isDownloading,
+    progress,
+    error: downloadError,
+    downloadZipFile,
+  } = useZipExport()
 
   // Check if API is configured (in production) or running in demo mode
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
@@ -343,13 +351,20 @@ export function App() {
 
   const handleNameBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      // Update project name when blurred
       const result = updateProjectName(project, e.target.value)
       setProject(result)
       setProjectName(result.name)
     },
     [project],
   )
+
+  const handleDownloadZip = useCallback(async () => {
+    try {
+      await downloadZipFile(project.currentSpec, projectName || 'elora-website')
+    } catch {
+      // Error is handled in hook
+    }
+  }, [downloadZipFile, project, projectName])
 
   const history = getVersionHistory(project)
 
@@ -422,6 +437,23 @@ export function App() {
                 title="Version history"
               >
                 History <span aria-hidden="true">↗</span>
+              </button>
+              <button
+                className="top-link download-btn"
+                onClick={handleDownloadZip}
+                disabled={isDownloading || !project.currentSpec.sections.length}
+                type="button"
+                title="Download ZIP"
+              >
+                {isDownloading ? (
+                  <span className="download-progress">
+                    {Math.round(progress)}%
+                  </span>
+                ) : (
+                  <>
+                    Download ZIP <span aria-hidden="true">↗</span>
+                  </>
+                )}
               </button>
             </>
           )}
@@ -501,6 +533,11 @@ export function App() {
             {editStatus === 'success' && editMessage && (
               <p className="success-message" role="status">
                 {editMessage}
+              </p>
+            )}
+            {downloadError && (
+              <p className="form-error" role="alert">
+                Download error: {downloadError}
               </p>
             )}
           </div>

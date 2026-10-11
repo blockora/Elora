@@ -1041,3 +1041,24 @@ textarea:focus-visible {
   background: #2a2629;
   border-color: #5a4f4a;
 }
+
+/* Download button styles */
+.download-btn {
+  background: #2a2629 !important;
+  border-color: #d99b72 !important;
+  color: #d99b72 !important;
+  font-weight: 600;
+}
+
+.download-btn:hover:not(.disabled) {
+  background: #3a3438 !important;
+}
+
+.download-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.download-progress {
+  font-variant-numeric: tabular-nums;
+}
