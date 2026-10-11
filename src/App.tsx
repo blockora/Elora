@@ -15,6 +15,8 @@ import {
   restoreVersion,
 } from './lib/projectState'
 import { useZipExport } from './lib/export/useZipExport'
+import { ProjectFileSystem, snapshotFromFileSystem } from './lib/codegen'
+import { CodeEditor } from './components/codegen/CodeEditor'
 
 const examples = [
   'A cozy neighborhood bakery with an artisan menu',
@@ -149,6 +151,12 @@ export function App() {
   const [showVersionHistory, setShowVersionHistory] = useState(false)
   const isGeneratingRef = useRef(false)
 
+  const [codeFileSystem] = useState<ProjectFileSystem>(() => {
+    const fs = new ProjectFileSystem()
+    fs.createProject('Generated Project')
+    return fs
+  })
+  const [editorOpen, setEditorOpen] = useState(false)
   const {
     isDownloading,
     progress,
@@ -366,6 +374,47 @@ export function App() {
     }
   }, [downloadZipFile, project, projectName])
 
+  const openCodeEditor = useCallback(() => {
+    setEditorOpen(true)
+  }, [])
+
+  const closeCodeEditor = useCallback(() => {
+    setEditorOpen(false)
+  }, [])
+
+  const handleCodeFileChange = useCallback(
+    (updated: Map<string, string>) => {
+      for (const [path, content] of updated) {
+        codeFileSystem.updateFile(path, content)
+      }
+    },
+    [codeFileSystem],
+  )
+
+  const handleCodeSave = useCallback(() => {
+    const snapshot = snapshotFromFileSystem(codeFileSystem, 'Code editor save')
+    if (!snapshot) {
+      return
+    }
+    // Persist through the existing project version architecture so edits are
+    // recoverable through the same version/recovery mechanisms.
+    const specFromSnapshot: WebsiteSpec = {
+      name: snapshot.name,
+      description: snapshot.changeSummary,
+      theme: {
+        mode: 'light',
+        primaryColor: '#666666',
+        backgroundColor: '#FFFFFF',
+        textColor: '#000000',
+      },
+      sections: [],
+    }
+    setProject((prev) => {
+      const result = applyEdit(prev, specFromSnapshot, snapshot.changeSummary)
+      return result.state
+    })
+  }, [codeFileSystem])
+
   const history = getVersionHistory(project)
 
   if (page === 'landing') {
@@ -437,6 +486,15 @@ export function App() {
                 title="Version history"
               >
                 History <span aria-hidden="true">↗</span>
+              </button>
+
+              <button
+                className="top-link codegen-open-btn"
+                onClick={openCodeEditor}
+                type="button"
+                title="Code editor"
+              >
+                Code <span aria-hidden="true">↗</span>
               </button>
               <button
                 className="top-link download-btn"
@@ -686,6 +744,30 @@ export function App() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {editorOpen && (
+        <div className="codegen-overlay">
+          <div className="codegen-panel-sheet">
+            <header className="codegen-sheet-header">
+              <span className="codegen-eyebrow">CODE GENERATION EDITOR</span>
+              <h2>Edit generated source</h2>
+              <button
+                className="codegen-close-btn"
+                type="button"
+                onClick={closeCodeEditor}
+                aria-label="Close code editor"
+              >
+                Close
+              </button>
+            </header>
+            <CodeEditor
+              fileSystem={codeFileSystem}
+              onChange={handleCodeFileChange}
+              onSave={handleCodeSave}
+            />
           </div>
         </div>
       )}

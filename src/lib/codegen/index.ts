@@ -5,6 +5,7 @@
  * - File system management for generated projects
  * - Safe code execution using QuickJS-Emscripten
  * - File diff utilities
+ * - Versioning integration with existing project history
  * - Type definitions for code editing
  *
  * Security features:
@@ -13,13 +14,19 @@
  * - Controlled file system operations
  * - Dependency allowlists
  * - Build error reporting
+ * - Bounded repair attempts
+ * - Execution cancellation via AbortSignal
  *
  * External runtime dependencies:
  * - quickjs-emscripten (MIT license) for JavaScript execution
  */
 
 export { ProjectFileSystem } from './fileSystem'
-export { CodeExecutionService } from './execution'
+export {
+  CodeExecutionService,
+  cancelExecution,
+  runBoundedRepairAttempts,
+} from './execution'
 export {
   generateDiff,
   generateLineDiff,
@@ -27,6 +34,23 @@ export {
   type FileChange,
   type DiffResult,
 } from './diff'
+export {
+  toEditorFile,
+  listEditorFiles,
+  validateEditorCode,
+  defaultCodeManifest,
+  type EditorFile,
+  type EditorState,
+  type EditorValidation,
+  type EditorBuild,
+} from './editor'
+export {
+  snapshotFromFileSystem,
+  restoreSnapshot,
+  manifestToMap,
+  validateSnapshot,
+  type CodeProjectSnapshot,
+} from './versioning'
 export type {
   GeneratedFile,
   FileManifest,
