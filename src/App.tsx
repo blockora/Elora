@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, useCallback } from 'react'
 import { WebsiteRenderer } from './features/website/WebsiteRenderer'
 import { restaurantWebsite } from './features/website/examples'
 import { type WebsiteSpec } from './features/website/schema'
@@ -79,7 +79,7 @@ function LandingPage({ onStart }: { onStart: () => void }) {
             <span>02</span>
             <h3>Explore a direction</h3>
             <p>
-              Elora’s prototype lets you try a prompt and see a sample layout.
+              Elora's prototype lets you try a prompt and see a sample layout.
             </p>
           </article>
           <article>
@@ -124,26 +124,66 @@ export function App() {
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
   >('idle')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Check if API is configured (in production) or running in demo mode
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+  const isApiConfigured = Boolean(apiBaseUrl)
+
+  const handleSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      const nextPrompt = prompt.trim()
+      if (!nextPrompt) {
+        setStatus('error')
+        setErrorMessage('Add a short description before starting.')
+        return
+      }
+
+      setStatus('loading')
+      setErrorMessage(null)
+
+      if (!isApiConfigured) {
+        // Local demo mode - no API configured
+        window.setTimeout(() => {
+          setPreview(createDemoSpec(nextPrompt))
+          setPreviewPrompt(nextPrompt)
+          setStatus('success')
+        }, 180)
+        return
+      }
+
+      try {
+        // Call the real API endpoint
+        const response = await fetch(`${apiBaseUrl}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: nextPrompt }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error?.message || 'Generation failed')
+        }
+
+        setPreview(data.spec)
+        setPreviewPrompt(nextPrompt)
+        setStatus('success')
+      } catch (error) {
+        setStatus('error')
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred',
+        )
+      }
+    },
+    [prompt, apiBaseUrl, isApiConfigured],
+  )
 
   if (page === 'landing') {
     return <LandingPage onStart={() => setPage('builder')} />
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const nextPrompt = prompt.trim()
-    if (!nextPrompt) {
-      setStatus('error')
-      return
-    }
-
-    setStatus('loading')
-    // This deterministic local response is UI-only. It does not call an AI provider.
-    window.setTimeout(() => {
-      setPreview(createDemoSpec(nextPrompt))
-      setPreviewPrompt(nextPrompt)
-      setStatus('success')
-    }, 180)
   }
 
   return (
@@ -194,23 +234,29 @@ export function App() {
                 <span className="message-label">YOUR IDEA</span>
                 <p>{previewPrompt}</p>
                 <span className="demo-notice">
-                  Local sample only. No AI was used.
+                  {isApiConfigured
+                    ? 'AI-generated preview.'
+                    : 'Local sample only. No AI was used.'}
                 </span>
               </div>
             )}
             {status === 'error' && (
               <p className="form-error" role="alert">
-                Add a short description before starting.
+                {errorMessage || 'An error occurred. Please try again.'}
               </p>
             )}
             {status === 'loading' && (
               <p className="loading-message" role="status">
-                Preparing your sample preview…
+                {isApiConfigured
+                  ? 'Generating your website…'
+                  : 'Preparing your sample preview…'}
               </p>
             )}
             {status === 'success' && (
               <p className="success-message" role="status">
-                Sample preview updated locally. No AI was used.
+                {isApiConfigured
+                  ? 'Website generated successfully!'
+                  : 'Sample preview updated locally.'}
               </p>
             )}
           </div>
@@ -232,12 +278,18 @@ export function App() {
             />
             <div className="form-bottom">
               <span id="prompt-help">
-                A local sample only — AI generation isn’t connected.
+                {isApiConfigured
+                  ? 'Generate a real website with AI.'
+                  : "A local sample only — AI generation isn't connected."}
               </span>
               <span id="prompt-count">{prompt.length}/500</span>
             </div>
             <button type="submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'Preparing…' : 'Show sample preview'}{' '}
+              {status === 'loading'
+                ? isApiConfigured
+                  ? 'Generating…'
+                  : 'Preparing…'
+                : 'Generate website'}{' '}
               <span aria-hidden="true">↗</span>
             </button>
           </form>
@@ -256,8 +308,9 @@ export function App() {
             ))}
           </div>
           <p className="privacy-note">
-            Your prompt stays in this browser. This demo does not send or save
-            it.
+            {isApiConfigured
+              ? 'Your prompts are sent to the AI service to generate your website.'
+              : 'Your prompt stays in this browser. This demo does not send or save it.'}
           </p>
         </section>
 
@@ -280,20 +333,25 @@ export function App() {
             </div>
             <div
               className="rendered-preview"
-              aria-label="Validated sample website preview"
+              aria-label="Validated website preview"
             >
               <WebsiteRenderer spec={preview} />
             </div>
           </div>
           <p className="preview-footnote">
-            This is a trusted renderer using a validated sample WebsiteSpec.
-            Prompt changes above are local demonstration data, not AI output.
+            {isApiConfigured
+              ? 'This is a real AI-generated website preview.'
+              : 'This is a trusted renderer using a validated sample WebsiteSpec.'}
           </p>
         </section>
       </div>
       <footer className="app-footer">
         <span>Elora is an early prototype.</span>
-        <span>No accounts · No AI requests · No saved projects</span>
+        <span>
+          {isApiConfigured
+            ? 'AI-powered website generation.'
+            : 'No accounts · No AI requests · No saved projects'}
+        </span>
       </footer>
     </main>
   )

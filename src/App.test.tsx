@@ -49,7 +49,8 @@ describe('builder prototype', () => {
     ).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Your canvas' })).toBeTruthy()
     expect(screen.getByText(/validated sample WebsiteSpec/i)).toBeTruthy()
-    expect(screen.getByText(/AI generation isn’t connected/i)).toBeTruthy()
+    // Check for the demo notice text (with regular apostrophe)
+    expect(screen.getByText(/AI generation isn't connected/i)).toBeTruthy()
   })
 
   it('shows the validated restaurant WebsiteSpec in the builder before prompt entry', () => {
@@ -85,9 +86,7 @@ describe('builder prototype', () => {
   it('shows an accessible error when the prompt is empty', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
-    fireEvent.click(
-      screen.getByRole('button', { name: /show sample preview/i }),
-    )
+    fireEvent.click(screen.getByRole('button', { name: /generate website/i }))
 
     expect(screen.getByRole('alert').textContent).toMatch(
       /add a short description/i,
@@ -102,9 +101,7 @@ describe('builder prototype', () => {
     fireEvent.change(screen.getByLabelText('Describe your website'), {
       target: { value: 'A quiet garden shop' },
     })
-    fireEvent.click(
-      screen.getByRole('button', { name: /show sample preview/i }),
-    )
+    fireEvent.click(screen.getByRole('button', { name: /generate website/i }))
 
     expect(screen.getByRole('status').textContent).toMatch(
       /preparing your sample/i,

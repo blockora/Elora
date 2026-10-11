@@ -1,9 +1,42 @@
 import type { Plugin } from 'vite'
-import { createApiHandler, MockAIProvider } from './api'
+import {
+  createApiHandler,
+  MockAIProvider,
+  MockAIEditProvider,
+  type AIProvider,
+  type AIEditProvider,
+} from './api'
+import { loadServerConfig, createServerProvider } from './config'
 
-/** Exposes deterministic API routes to Vite development only; no production server is configured. */
+/** Exposes API routes to Vite development only; no production server is configured. */
 export function apiDevPlugin(): Plugin {
-  const handler = createApiHandler(new MockAIProvider())
+  let handler = createApiHandler({
+    provider: new MockAIProvider(),
+    editProvider: new MockAIEditProvider(),
+    timeoutMs: 10000,
+    rateLimit: {
+      maxRequests: 30,
+      windowMs: 60000,
+    },
+  })
+
+  // Attempt to load server config for more realistic development
+  try {
+    const config = loadServerConfig()
+    if (config.providerType !== 'mock') {
+      const provider = createServerProvider(config)
+      // For Gemini, we use the same provider for both generation and editing
+      handler = createApiHandler({
+        provider: provider as AIProvider,
+        editProvider: provider as unknown as AIEditProvider,
+        timeoutMs: config.timeoutMs,
+        rateLimit: config.rateLimit,
+      })
+    }
+  } catch (error) {
+    console.warn('API configuration warning:', error)
+  }
+
   return {
     name: 'elora-dev-api',
     apply: 'serve',
