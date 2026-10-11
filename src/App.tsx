@@ -1,34 +1,13 @@
 import { useState, type FormEvent } from 'react'
-
-type DemoResult = {
-  title: string
-  description: string
-  accent: string
-  prompt: string
-}
+import { WebsiteRenderer } from './features/website/WebsiteRenderer'
+import { restaurantWebsite } from './features/website/examples'
+import { type WebsiteSpec } from './features/website/schema'
 
 const examples = [
   'A cozy neighborhood bakery with an artisan menu',
   'A modern yoga studio with class schedules',
   'A bold portfolio for a digital illustrator',
 ]
-
-const demoResult: DemoResult = {
-  title: 'A place to slow down.',
-  description: 'Thoughtful design, made for your next big idea.',
-  accent: 'A little inspiration, made visible.',
-  prompt: 'A small creative studio with an editorial feel',
-}
-
-function createDemoResult(prompt: string): DemoResult {
-  const words = prompt.trim().replace(/[.!?]+$/, '')
-  return {
-    title: words.length > 0 ? words : demoResult.title,
-    description: 'A first-look layout based on your description.',
-    accent: 'Sample preview · Demo only',
-    prompt: words,
-  }
-}
 
 function LandingPage({ onStart }: { onStart: () => void }) {
   return (
@@ -45,7 +24,6 @@ function LandingPage({ onStart }: { onStart: () => void }) {
           </button>
         </nav>
       </header>
-
       <section
         className="landing-hero"
         id="home"
@@ -84,7 +62,6 @@ function LandingPage({ onStart }: { onStart: () => void }) {
           </div>
         </div>
       </section>
-
       <section
         className="how-section"
         id="how-it-works"
@@ -123,10 +100,27 @@ function LandingPage({ onStart }: { onStart: () => void }) {
   )
 }
 
+function createDemoSpec(prompt: string): WebsiteSpec {
+  const title = prompt.trim().replace(/[.!?]+$/, '')
+  return {
+    ...restaurantWebsite,
+    sections: restaurantWebsite.sections.map((section) =>
+      section.type === 'hero'
+        ? {
+            ...section,
+            title,
+            subtitle: 'Local sample preview · No AI was used.',
+          }
+        : section,
+    ),
+  }
+}
+
 export function App() {
   const [page, setPage] = useState<'landing' | 'builder'>('landing')
   const [prompt, setPrompt] = useState('')
-  const [preview, setPreview] = useState<DemoResult | null>(null)
+  const [preview, setPreview] = useState<WebsiteSpec>(restaurantWebsite)
+  const [previewPrompt, setPreviewPrompt] = useState<string | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
 
   if (page === 'landing') {
@@ -144,7 +138,8 @@ export function App() {
     setStatus('loading')
     // This deterministic local response is UI-only. It does not call an AI provider.
     window.setTimeout(() => {
-      setPreview(createDemoResult(nextPrompt))
+      setPreview(createDemoSpec(nextPrompt))
+      setPreviewPrompt(nextPrompt)
       setStatus('idle')
     }, 180)
   }
@@ -192,12 +187,12 @@ export function App() {
                 </p>
               </div>
             </div>
-            {preview && (
+            {previewPrompt && (
               <div className="user-message">
                 <span className="message-label">YOUR IDEA</span>
-                <p>{preview.prompt}</p>
+                <p>{previewPrompt}</p>
                 <span className="demo-notice">
-                  Demo preview updated locally. No AI was used.
+                  Local sample only. No AI was used.
                 </span>
               </div>
             )}
@@ -275,33 +270,16 @@ export function App() {
               <span />
               <div className="address-bar">your-website.preview</div>
             </div>
-            <div className="site-preview" aria-label="Sample website preview">
-              <div className="site-nav">
-                <span className="site-logo">STUDIO / 01</span>
-                <span>ABOUT · WORK · CONTACT</span>
-              </div>
-              <div className="site-content">
-                <span className="site-eyebrow">
-                  {preview?.accent ?? 'A DIGITAL HOME FOR YOUR IDEA'}
-                </span>
-                <h3>{preview?.title ?? 'Make room for\nsomething lovely.'}</h3>
-                <p>
-                  {preview?.description ??
-                    'A thoughtful starting point for a website that feels like you.'}
-                </p>
-                <span className="site-cta">
-                  Explore the idea <span aria-hidden="true">↗</span>
-                </span>
-              </div>
-              <div className="preview-orb" aria-hidden="true" />
-              <span className="preview-caption">
-                SAMPLE LAYOUT · NOT A GENERATED WEBSITE
-              </span>
+            <div
+              className="rendered-preview"
+              aria-label="Validated sample website preview"
+            >
+              <WebsiteRenderer spec={preview} />
             </div>
           </div>
           <p className="preview-footnote">
-            This sample is a visual placeholder, not a rendered website
-            specification.
+            This is a trusted renderer using a validated sample WebsiteSpec.
+            Prompt changes above are local demonstration data, not AI output.
           </p>
         </section>
       </div>

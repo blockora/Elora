@@ -1066,7 +1066,7 @@ A working frontend prototype.
 
 ## PHASE 2 — Website Schema and Rendering Engine
 
-Status: [ ] In progress — a bounded Zod `WebsiteSpec` contract, supported theme/section types, validated restaurant fixture, and schema tests are implemented. The renderer and remaining phase acceptance criteria are not yet complete.
+Status: [ ] In progress — the validated contract, fixture, trusted renderer for all supported section variants, responsive styles, and renderer tests are implemented and integrated into the builder sample. Real generation and remaining phase acceptance criteria are not yet complete.
 
 ### Objectives
 
@@ -1078,17 +1078,17 @@ Create the component system and data contract that AI-generated websites must fo
 - [x] Define the `WebsiteSpec` Zod schema.
 - [x] Define supported themes.
 - [x] Define supported section types.
-- [ ] Implement the website renderer.
-- [ ] Implement the section renderer.
-- [ ] Create the initial section components.
-- [ ] Implement responsive layouts.
-- [ ] Handle optional and missing values.
-- [ ] Reject unsupported section types safely.
+- [x] Implement the website renderer.
+- [x] Implement the section renderer.
+- [x] Create initial components for all supported section variants.
+- [x] Implement responsive renderer layouts.
+- [x] Handle optional and missing section values with safe defaults.
+- [x] Reject unsupported section types through schema validation; renderer dispatch is exhaustively typed.
 - [x] Add example website specifications (restaurant fixture, validated at module load).
 - [x] Add schema tests.
-- [ ] Add rendering tests.
+- [x] Add rendering tests for supported variants, escaping, themes, and optional values.
 - [x] Test invalid/untrusted specification inputs; no model/provider integration exists yet.
-- [ ] Verify the preview can be updated from new specifications.
+- [x] Verify the builder preview updates from a new local demo WebsiteSpec (no AI/provider call).
 
 ### Definition of done
 
@@ -1830,7 +1830,7 @@ This section must be updated as work is completed.
 
 - [ ] Builder UI completed (responsive landing and builder prototype exist; full roadmap acceptance criteria remain outstanding).
 - [x] Website schema defined and tested (renderer remains outstanding).
-- [ ] Website renderer completed.
+- [x] Website renderer completed for validated specs; AI generation remains unimplemented.
 - [ ] AI provider interface completed.
 - [ ] Real AI generation working.
 - [ ] AI editing working.

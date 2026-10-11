@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
+import { restaurantWebsite } from './features/website/examples'
 
 afterEach(() => {
   cleanup()
@@ -47,8 +48,24 @@ describe('builder prototype', () => {
       screen.getByRole('button', { name: /cozy neighborhood bakery/i }),
     ).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Your canvas' })).toBeTruthy()
-    expect(screen.getByText(/not a generated website/i)).toBeTruthy()
+    expect(screen.getByText(/validated sample WebsiteSpec/i)).toBeTruthy()
     expect(screen.getByText(/AI generation isn’t connected/i)).toBeTruthy()
+  })
+
+  it('shows the validated restaurant WebsiteSpec in the builder before prompt entry', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
+    expect(
+      screen.getByRole('heading', { name: 'Gather around the table' }),
+    ).toBeTruthy()
+    expect(
+      screen.getByRole('heading', { name: 'A taste of the season' }),
+    ).toBeTruthy()
+    expect(
+      screen.getByRole('article', {
+        name: `${restaurantWebsite.name} website preview`,
+      }),
+    ).toBeTruthy()
   })
 
   it('copies an example into the prompt without starting the demo', () => {
@@ -97,7 +114,10 @@ describe('builder prototype', () => {
     expect(
       screen.getByRole('heading', { name: 'A quiet garden shop' }),
     ).toBeTruthy()
-    expect(screen.getByText(/No AI was used/i)).toBeTruthy()
+    expect(screen.getByText('Local sample only. No AI was used.')).toBeTruthy()
+    expect(
+      screen.getByRole('heading', { name: 'A quiet garden shop' }),
+    ).toBeTruthy()
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 })
