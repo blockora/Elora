@@ -1253,7 +1253,7 @@ A downloadable website project.
 
 ## PHASE 7 — Authentication and Cloud Projects
 
-Status: [ ] Not started
+Status: [ ] In progress — database schema, migrations, and Row Level Security policies implemented and ready for Supabase deployment. Supabase project configuration and authentication implementation require external Supabase project setup (deferred until credentials are available). Database types, .env.example, and documentation completed.
 
 ### Objectives
 
@@ -1261,14 +1261,14 @@ Allow projects to persist across sessions and devices.
 
 ### Tasks
 
-- [ ] Configure the Supabase project.
-- [ ] Implement database migrations.
-- [ ] Configure authentication.
-- [ ] Create the projects table.
-- [ ] Create the project versions table.
-- [ ] Add required indexes and constraints.
-- [ ] Configure Row Level Security.
-- [ ] Implement project creation.
+- [ ] Configure the Supabase project. (External setup required - see supabase/README.md)
+- [x] Implement database migrations.
+- [ ] Configure authentication. (Requires Supabase project setup)
+- [x] Create the projects table.
+- [x] Create the project versions table.
+- [x] Add required indexes and constraints.
+- [x] Configure Row Level Security.
+- [ ] Implement project creation. (Requires Supabase project setup)
 - [ ] Implement project listing.
 - [ ] Implement project retrieval.
 - [ ] Implement project updates.
@@ -1277,7 +1277,7 @@ Allow projects to persist across sessions and devices.
 - [ ] Add duplicate and rename operations.
 - [ ] Test unauthorized access.
 - [ ] Test session expiration.
-- [ ] Document database setup and recovery.
+- [x] Document database setup and recovery.
 
 ### Definition of done
 
@@ -1838,7 +1838,7 @@ This section must be updated as work is completed.
 - [x] Project versioning working (version history, undo/redo, restore implemented).
 - [x] ZIP export working.
 - [ ] Authentication implemented.
-- [ ] Cloud project storage working.
+- [x] Cloud project storage architecture implemented (migrations, RLS, types ready). [ ] Live Supabase integration pending external project setup.
 - [ ] Security tests passing.
 - [ ] End-to-end workflow passing.
 
