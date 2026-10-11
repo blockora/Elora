@@ -984,7 +984,7 @@ Do not mark a phase complete merely because its source files exist.
 
 ## PHASE 0 — Repository and Development Foundation
 
-Status: [ ] Not started
+Status: [ ] In progress — the initial React/TypeScript/Vite application, local checks, and CI workflow are in place. The GitHub repository privacy setting and actual remote CI run remain unverified.
 
 ### Objectives
 
@@ -993,22 +993,22 @@ Establish a clean repository, documented setup, consistent tooling, and a reprod
 ### Tasks
 
 - [ ] Confirm the GitHub repository is `elora`.
-- [ ] Keep the repository private during initial development.
+- [ ] Keep the repository private during initial development. (Remote setting not verified.)
 - [ ] Add `roadmap.md`.
-- [ ] Add a root `README.md`.
-- [ ] Document the product's MVP scope.
-- [ ] Create a suitable `.gitignore`.
-- [ ] Add `.env.example` without real secrets.
-- [ ] Configure TypeScript.
-- [ ] Configure ESLint.
-- [ ] Configure formatting.
-- [ ] Select the package manager.
-- [ ] Create the first application workspace.
+- [x] Add a root `README.md`.
+- [x] Document the product's MVP scope.
+- [x] Create a suitable `.gitignore`.
+- [x] Add `.env.example` without real secrets.
+- [x] Configure TypeScript.
+- [x] Configure ESLint.
+- [x] Configure formatting.
+- [x] Select the package manager (npm, with `package-lock.json`).
+- [x] Create the first application workspace (root React + Vite app).
 - [ ] Create the first shared schema package when needed.
-- [ ] Establish a local development command.
-- [ ] Establish a production build command.
-- [ ] Add initial GitHub Actions checks.
-- [ ] Document environment setup.
+- [x] Establish a local development command.
+- [x] Establish a production build command.
+- [x] Add initial GitHub Actions checks.
+- [x] Document environment setup.
 
 ### Definition of done
 
@@ -1820,11 +1820,11 @@ This section must be updated as work is completed.
 
 ## Foundation
 
-- [ ] Repository documentation added.
-- [ ] Development environment configured.
-- [ ] CI checks configured.
-- [ ] Initial frontend created.
-- [ ] Initial production build succeeds.
+- [x] Repository documentation added (README and roadmap).
+- [x] Development environment configured (npm, TypeScript, Vite, ESLint, Prettier).
+- [x] CI checks configured.
+- [x] Initial frontend created (static prototype; no generation functionality yet).
+- [x] Initial production build succeeds (locally verified).
 
 ## MVP
 
@@ -1858,13 +1858,13 @@ Only mark a task complete after verifying it in the actual codebase or deployed 
 
 The next development steps should be performed in this order.
 
-1. Inspect the current repository and identify any existing files.
-2. Add this roadmap as `roadmap.md`.
-3. Create or update the root `README.md`.
-4. Finalize the initial architecture and environment configuration.
-5. Set up the frontend and API workspaces.
-6. Establish linting, type checking, and production builds.
-7. Build the static builder interface.
+1. Inspect the current repository and identify any existing files. (Done.)
+2. Add this roadmap as `roadmap.md`. (Already present.)
+3. Create or update the root `README.md`. (Done.)
+4. Finalize the initial architecture and environment configuration. (Initial local foundation only; API/provider architecture remains future work.)
+5. Set up the frontend and API workspaces. (Frontend root app created; API workspace deferred until needed.)
+6. Establish linting, type checking, and production builds. (Done and locally verified.)
+7. Build the static builder interface. (Initial static prompt UI created; phase acceptance criteria remain incomplete.)
 8. Implement the website schema and renderer.
 9. Connect the first real AI provider.
 10. Complete the prompt-to-preview workflow.
