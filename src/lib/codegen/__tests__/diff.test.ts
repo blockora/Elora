@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { generateDiff, generateLineDiff, formatDiff } from '../diff'
-
+import {
+  generateDiff,
+  generateLineDiff,
+  formatDiff,
+  type FileChange,
+} from '../diff'
 
 describe('Diff utilities', () => {
   describe('generateDiff', () => {
@@ -111,7 +115,7 @@ describe('Diff utilities', () => {
     })
 
     it('formats added file', () => {
-      const changes = [
+      const changes: FileChange[] = [
         {
           type: 'added',
           path: 'src/new.ts',
@@ -125,7 +129,7 @@ describe('Diff utilities', () => {
     })
 
     it('formats modified file', () => {
-      const changes = [
+      const changes: FileChange[] = [
         {
           type: 'modified',
           path: 'src/App.tsx',
