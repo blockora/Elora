@@ -1026,7 +1026,7 @@ A reproducible development foundation.
 
 ## PHASE 1 — Product UI and Static Prototype
 
-Status: [ ] Not started
+Status: [ ] In progress — responsive two-panel builder prototype, example prompts, local sample preview, and accessible prompt feedback implemented. Landing-page content and broader UI acceptance criteria remain incomplete.
 
 ### Objectives
 
@@ -1036,18 +1036,18 @@ Build the main interface before connecting a real AI provider.
 
 - [ ] Create the landing page.
 - [ ] Create the main navigation.
-- [ ] Create the prompt input.
-- [ ] Add sample prompts.
-- [ ] Create the builder layout.
-- [ ] Create the AI conversation panel.
-- [ ] Create the preview panel.
-- [ ] Implement loading states.
-- [ ] Implement error states.
-- [ ] Add a responsive mobile layout.
-- [ ] Add accessible form labels.
-- [ ] Add keyboard focus styles.
-- [ ] Use sample website data for initial previews.
-- [ ] Separate mock functionality from real provider logic.
+- [x] Create the prompt input.
+- [x] Add sample prompts.
+- [x] Create the builder layout (responsive assistant and preview panels).
+- [x] Create the AI conversation panel (static initial message; user prompt appears in explicit demo mode).
+- [x] Create the preview panel (labeled visual sample, not a WebsiteSpec renderer).
+- [x] Implement loading states (local demo only).
+- [x] Implement error states (empty prompt validation).
+- [x] Add a responsive mobile layout.
+- [x] Add accessible form labels.
+- [x] Add keyboard focus styles.
+- [x] Use a static sample website layout for the initial preview.
+- [x] Separate local UI-only demo behavior from provider logic (no provider exists yet).
 
 ### Definition of done
 
@@ -1828,7 +1828,7 @@ This section must be updated as work is completed.
 
 ## MVP
 
-- [ ] Builder UI completed.
+- [ ] Builder UI completed (initial responsive shell exists; full roadmap acceptance criteria remain outstanding).
 - [ ] Website schema defined.
 - [ ] Website renderer completed.
 - [ ] AI provider interface completed.

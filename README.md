@@ -1,6 +1,6 @@
 # Elora
 
-Elora is a free-first AI website builder. The project is at its foundation stage: this repository currently contains a responsive static UI prototype only. The prompt form does not generate a website yet; no AI provider or credentials are required.
+Elora is a free-first AI website builder in an early prototype stage. The current responsive builder shell has an assistant panel, examples, and a labeled sample preview. Submitting a prompt updates sample text locally; it does not generate a real website, use AI, save data, or send prompts over the network. No AI provider or credentials are required.
 
 ## Requirements
 
@@ -29,7 +29,7 @@ npm run build
 ## Current scope
 
 - React + TypeScript + Vite static prototype
-- Accessible prompt input and responsive landing layout
-- Generation, preview, AI editing, persistence, and export are not implemented yet
+- Responsive assistant and preview panels, prompt examples, and accessible local demo feedback
+- AI generation, schema-based rendering, AI editing, persistence, and export are not implemented yet
 
 The roadmap in [`roadmap.md`](./roadmap.md) is the source of truth for scope and sequencing. AI-generated content will be validated and rendered through trusted components; arbitrary generated code will not run on the application server.
