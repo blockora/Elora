@@ -984,7 +984,7 @@ Do not mark a phase complete merely because its source files exist.
 
 ## PHASE 0 — Repository and Development Foundation
 
-Status: [ ] Not started
+Status: [ ] In progress — the initial React/TypeScript/Vite application, local checks, and CI workflow are in place. The GitHub repository privacy setting and actual remote CI run remain unverified.
 
 ### Objectives
 
@@ -993,22 +993,22 @@ Establish a clean repository, documented setup, consistent tooling, and a reprod
 ### Tasks
 
 - [ ] Confirm the GitHub repository is `elora`.
-- [ ] Keep the repository private during initial development.
+- [ ] Keep the repository private during initial development. (Remote setting not verified.)
 - [ ] Add `roadmap.md`.
-- [ ] Add a root `README.md`.
-- [ ] Document the product's MVP scope.
-- [ ] Create a suitable `.gitignore`.
-- [ ] Add `.env.example` without real secrets.
-- [ ] Configure TypeScript.
-- [ ] Configure ESLint.
-- [ ] Configure formatting.
-- [ ] Select the package manager.
-- [ ] Create the first application workspace.
+- [x] Add a root `README.md`.
+- [x] Document the product's MVP scope.
+- [x] Create a suitable `.gitignore`.
+- [x] Add `.env.example` without real secrets.
+- [x] Configure TypeScript.
+- [x] Configure ESLint.
+- [x] Configure formatting.
+- [x] Select the package manager (npm, with `package-lock.json`).
+- [x] Create the first application workspace (root React + Vite app).
 - [ ] Create the first shared schema package when needed.
-- [ ] Establish a local development command.
-- [ ] Establish a production build command.
-- [ ] Add initial GitHub Actions checks.
-- [ ] Document environment setup.
+- [x] Establish a local development command.
+- [x] Establish a production build command.
+- [x] Add initial GitHub Actions checks.
+- [x] Document environment setup.
 
 ### Definition of done
 
@@ -1026,7 +1026,7 @@ A reproducible development foundation.
 
 ## PHASE 1 — Product UI and Static Prototype
 
-Status: [ ] Not started
+Status: [ ] In progress — responsive landing screen and builder prototype, semantic navigation, examples, local sample preview, and accessible idle/loading/success/error feedback are implemented. Broader UI acceptance criteria remain incomplete; generation is still local demo behavior.
 
 ### Objectives
 
@@ -1034,20 +1034,21 @@ Build the main interface before connecting a real AI provider.
 
 ### Tasks
 
-- [ ] Create the landing page.
-- [ ] Create the main navigation.
-- [ ] Create the prompt input.
-- [ ] Add sample prompts.
-- [ ] Create the builder layout.
-- [ ] Create the AI conversation panel.
-- [ ] Create the preview panel.
-- [ ] Implement loading states.
-- [ ] Implement error states.
-- [ ] Add a responsive mobile layout.
-- [ ] Add accessible form labels.
-- [ ] Add keyboard focus styles.
-- [ ] Use sample website data for initial previews.
-- [ ] Separate mock functionality from real provider logic.
+- [x] Create the landing page (prototype introduction, illustrative sample, and how-it-works section).
+- [x] Create the main navigation (landing anchors and builder entry actions).
+- [x] Create the prompt input.
+- [x] Add sample prompts.
+- [x] Create the builder layout (responsive assistant and preview panels).
+- [x] Create the AI conversation panel (static initial message; user prompt appears in explicit demo mode).
+- [x] Create the preview panel (labeled visual sample, not a WebsiteSpec renderer).
+- [x] Implement loading states (local demo only).
+- [x] Implement success feedback (local demo only; no AI generation is implied).
+- [x] Implement error states (empty prompt validation).
+- [x] Add a responsive mobile layout.
+- [x] Add accessible form labels.
+- [x] Add keyboard focus styles.
+- [x] Use a static sample website layout for the initial preview.
+- [x] Separate local UI-only demo behavior from provider logic (no provider exists yet).
 
 ### Definition of done
 
@@ -1066,7 +1067,7 @@ A working frontend prototype.
 
 ## PHASE 2 — Website Schema and Rendering Engine
 
-Status: [ ] Not started
+Status: [ ] In progress — the validated contract, fixture, trusted renderer for all supported section variants, responsive styles, and renderer tests are implemented and integrated into the builder sample. Real generation and remaining phase acceptance criteria are not yet complete.
 
 ### Objectives
 
@@ -1074,21 +1075,21 @@ Create the component system and data contract that AI-generated websites must fo
 
 ### Tasks
 
-- [ ] Define the `WebsiteSpec` type.
-- [ ] Define the `WebsiteSpec` Zod schema.
-- [ ] Define supported themes.
-- [ ] Define supported section types.
-- [ ] Implement the website renderer.
-- [ ] Implement the section renderer.
-- [ ] Create the initial section components.
-- [ ] Implement responsive layouts.
-- [ ] Handle optional and missing values.
-- [ ] Reject unsupported section types safely.
-- [ ] Add example website specifications.
-- [ ] Add schema tests.
-- [ ] Add rendering tests.
-- [ ] Test invalid model output.
-- [ ] Verify the preview can be updated from new specifications.
+- [x] Define the `WebsiteSpec` type (inferred from the runtime schema).
+- [x] Define the `WebsiteSpec` Zod schema.
+- [x] Define supported themes.
+- [x] Define supported section types.
+- [x] Implement the website renderer.
+- [x] Implement the section renderer.
+- [x] Create initial components for all supported section variants.
+- [x] Implement responsive renderer layouts.
+- [x] Handle optional and missing section values with safe defaults.
+- [x] Reject unsupported section types through schema validation; renderer dispatch is exhaustively typed.
+- [x] Add example website specifications (restaurant fixture, validated at module load).
+- [x] Add schema tests.
+- [x] Add rendering tests for supported variants, escaping, themes, and optional values.
+- [x] Test invalid/untrusted specification inputs; no model/provider integration exists yet.
+- [x] Verify the builder preview updates from a new local demo WebsiteSpec (no AI/provider call).
 
 ### Definition of done
 
@@ -1106,7 +1107,7 @@ A deterministic website rendering engine.
 
 ## PHASE 3 — Backend API and Real AI Generation
 
-Status: [ ] Not started
+Status: [ ] In progress — request/response contracts, a provider interface, deterministic mock provider, and Vite development-only health/generation routes are implemented and tested. No production API server, hosted provider, credentials, rate limiting, or frontend generation integration exists yet.
 
 ### Objectives
 
@@ -1114,26 +1115,26 @@ Connect the frontend to a real AI provider without exposing credentials.
 
 ### Tasks
 
-- [ ] Create the API application.
-- [ ] Add a health endpoint.
-- [ ] Define API request and response schemas.
-- [ ] Create the AI provider interface.
-- [ ] Implement the mock provider.
+- [x] Create a development API handler and Vite-only route adapter (production server remains outstanding).
+- [x] Add a development health endpoint.
+- [x] Define generation request and response schemas.
+- [x] Create the provider interface.
+- [x] Implement a deterministic mock provider for development/tests (not production generation).
 - [ ] Implement the first supported hosted AI provider.
 - [ ] Configure server-side credentials.
-- [ ] Implement the generation endpoint.
-- [ ] Validate prompts.
-- [ ] Call the AI provider.
-- [ ] Parse the structured response.
-- [ ] Validate the response.
+- [x] Implement the development mock generation endpoint (hosted-provider endpoint remains outstanding).
+- [x] Validate prompt shape and length at the API boundary.
+- [ ] Call the AI provider (the dev endpoint uses only the deterministic mock).
+- [x] Parse provider output as untrusted data.
+- [x] Validate provider output with the WebsiteSpec schema before responding.
 - [ ] Add bounded error recovery.
 - [ ] Add request timeouts.
 - [ ] Add rate limiting.
 - [ ] Map provider errors to user-friendly responses.
-- [ ] Connect the frontend's Build button.
+- [ ] Connect the frontend's Build button to a hosted-provider backend (mock endpoint is not wired into the UI).
 - [ ] Add generation progress indicators.
 - [ ] Test exhausted quota scenarios.
-- [ ] Test invalid provider responses.
+- [x] Test malformed JSON and invalid provider outputs.
 
 ### Definition of done
 
@@ -1820,18 +1821,18 @@ This section must be updated as work is completed.
 
 ## Foundation
 
-- [ ] Repository documentation added.
-- [ ] Development environment configured.
-- [ ] CI checks configured.
-- [ ] Initial frontend created.
-- [ ] Initial production build succeeds.
+- [x] Repository documentation added (README and roadmap).
+- [x] Development environment configured (npm, TypeScript, Vite, ESLint, Prettier).
+- [x] CI checks configured.
+- [x] Initial frontend created (static prototype; no generation functionality yet).
+- [x] Initial production build succeeds (locally verified).
 
 ## MVP
 
-- [ ] Builder UI completed.
-- [ ] Website schema defined.
-- [ ] Website renderer completed.
-- [ ] AI provider interface completed.
+- [ ] Builder UI completed (responsive landing and builder prototype exist; full roadmap acceptance criteria remain outstanding).
+- [x] Website schema defined and tested (renderer remains outstanding).
+- [x] Website renderer completed for validated specs; AI generation remains unimplemented.
+- [x] AI provider interface and deterministic mock API foundation completed; hosted provider remains outstanding.
 - [ ] Real AI generation working.
 - [ ] AI editing working.
 - [ ] Project versioning working.
@@ -1858,13 +1859,13 @@ Only mark a task complete after verifying it in the actual codebase or deployed 
 
 The next development steps should be performed in this order.
 
-1. Inspect the current repository and identify any existing files.
-2. Add this roadmap as `roadmap.md`.
-3. Create or update the root `README.md`.
-4. Finalize the initial architecture and environment configuration.
-5. Set up the frontend and API workspaces.
-6. Establish linting, type checking, and production builds.
-7. Build the static builder interface.
+1. Inspect the current repository and identify any existing files. (Done.)
+2. Add this roadmap as `roadmap.md`. (Already present.)
+3. Create or update the root `README.md`. (Done.)
+4. Finalize the initial architecture and environment configuration. (Initial local foundation only; API/provider architecture remains future work.)
+5. Set up the frontend and API workspaces. (Frontend root app created; API workspace deferred until needed.)
+6. Establish linting, type checking, and production builds. (Done and locally verified.)
+7. Build the static builder interface. (Initial static prompt UI created; phase acceptance criteria remain incomplete.)
 8. Implement the website schema and renderer.
 9. Connect the first real AI provider.
 10. Complete the prompt-to-preview workflow.
