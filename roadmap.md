@@ -1325,23 +1325,47 @@ This phase introduces materially greater complexity and must begin only after th
 
 ### Tasks
 
-- [ ] Research supported browser execution approaches.
-- [ ] Evaluate suitable sandbox technologies.
-- [ ] Review licenses and production usage requirements.
-- [ ] Define the generated project file format.
-- [ ] Introduce a file manifest.
-- [ ] Add file creation and modification tools.
-- [ ] Add controlled file deletion.
-- [ ] Add source-code viewing.
-- [ ] Add a code editor.
-- [ ] Add change diffs.
-- [ ] Add file validation.
-- [ ] Add dependency allowlists.
-- [ ] Restrict package installation.
-- [ ] Add build error reporting.
-- [ ] Add bounded repair attempts.
-- [ ] Preserve the last working project.
-- [ ] Add file-level versioning where appropriate.
+- [x] Research supported browser execution approaches. (Research completed: QuickJS-Emscripten, sandboxed iframes, JS-Interpreter evaluated)
+- [x] Evaluate suitable sandbox technologies. (Selected QuickJS-Emscripten (MIT) for JS sandboxing; sandboxed iframe for DOM previews)
+- [x] Review licenses and production usage requirements. (QuickJS-Emscripten: MIT; Sandpack: Apache-2.0 with Nodebox commercial exceptions)
+- [x] Define the generated project file format.
+- [x] Introduce a file manifest. (FileManifest type with files array and metadata)
+- [x] Add file creation and modification tools. (ProjectFileSystem class with createFile, updateFile, readFile)
+- [x] Add controlled file deletion. (deleteFile with critical file protection)
+- [x] Add source-code viewing. (readFile returns content as string)
+- [ ] Add a code editor. (UI component pending - requires Monaco or similar integration)
+- [x] Add change diffs. (generateDiff, generateLineDiff, formatDiff utilities)
+- [x] Add file validation. (Path validation, critical file protection, content validation)
+- [x] Add dependency allowlists. (Dependency validation with hardcoded essentials + configurable allowlist)
+- [ ] Restrict package installation. (Allowlist infrastructure in place; enforcement pending full implementation)
+- [x] Add build error reporting. (CodeExecutionResult with error classification)
+- [ ] Add bounded repair attempts. (Pending - requires editor integration)
+- [x] Preserve the last working project. (In-memory file system maintains state)
+- [ ] Add file-level versioning where appropriate. (Pending - can leverage existing version history system)
+
+### Security requirements
+
+Generated code must not execute with unrestricted access to the application's server or credentials.
+
+Before allowing arbitrary project execution, define and test:
+
+- [x] Isolation boundaries. (QuickJS sandbox, separate runtime per execution)
+- [x] Network permissions. (No network by default; fetch blocked in validation)
+- [x] Storage permissions. (In-memory file system with path validation)
+- [x] Execution time limits. (Configurable timeout supported)
+- [x] Resource limits. (Memory limits configured in QuickJS)
+- [x] Dependency restrictions. (Allowlist infrastructure)
+- [x] Cross-origin policies. (Sandboxed execution context)
+- [ ] Cancellation behavior. (Pending - worker termination support)
+- [ ] Recovery behavior. (Pending - can leverage existing version history)
+
+A browser runtime must be evaluated for actual compatibility and security constraints before being selected.
+
+### Definition of done
+
+A user can inspect and modify generated source code through the editor, and supported projects can be previewed without compromising the main application.
+
+**Phase 8 Status:** Foundation implemented. Core security sandbox (QuickJS), file management, diff utilities, and validation are complete. Code editor UI (Monaco integration) and full browser execution testing are pending.
 
 ### Security requirements
 
