@@ -1066,7 +1066,7 @@ A working frontend prototype.
 
 ## PHASE 2 — Website Schema and Rendering Engine
 
-Status: [ ] Not started
+Status: [ ] In progress — a bounded Zod `WebsiteSpec` contract, supported theme/section types, validated restaurant fixture, and schema tests are implemented. The renderer and remaining phase acceptance criteria are not yet complete.
 
 ### Objectives
 
@@ -1074,20 +1074,20 @@ Create the component system and data contract that AI-generated websites must fo
 
 ### Tasks
 
-- [ ] Define the `WebsiteSpec` type.
-- [ ] Define the `WebsiteSpec` Zod schema.
-- [ ] Define supported themes.
-- [ ] Define supported section types.
+- [x] Define the `WebsiteSpec` type (inferred from the runtime schema).
+- [x] Define the `WebsiteSpec` Zod schema.
+- [x] Define supported themes.
+- [x] Define supported section types.
 - [ ] Implement the website renderer.
 - [ ] Implement the section renderer.
 - [ ] Create the initial section components.
 - [ ] Implement responsive layouts.
 - [ ] Handle optional and missing values.
 - [ ] Reject unsupported section types safely.
-- [ ] Add example website specifications.
-- [ ] Add schema tests.
+- [x] Add example website specifications (restaurant fixture, validated at module load).
+- [x] Add schema tests.
 - [ ] Add rendering tests.
-- [ ] Test invalid model output.
+- [x] Test invalid/untrusted specification inputs; no model/provider integration exists yet.
 - [ ] Verify the preview can be updated from new specifications.
 
 ### Definition of done
@@ -1829,7 +1829,7 @@ This section must be updated as work is completed.
 ## MVP
 
 - [ ] Builder UI completed (responsive landing and builder prototype exist; full roadmap acceptance criteria remain outstanding).
-- [ ] Website schema defined.
+- [x] Website schema defined and tested (renderer remains outstanding).
 - [ ] Website renderer completed.
 - [ ] AI provider interface completed.
 - [ ] Real AI generation working.
