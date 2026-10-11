@@ -114,6 +114,9 @@ describe('builder prototype', () => {
     expect(
       screen.getByRole('heading', { name: 'A quiet garden shop' }),
     ).toBeTruthy()
+    expect(screen.getByRole('status').textContent).toMatch(
+      /sample preview updated locally/i,
+    )
     expect(screen.getByText('Local sample only. No AI was used.')).toBeTruthy()
     expect(
       screen.getByRole('heading', { name: 'A quiet garden shop' }),

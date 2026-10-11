@@ -31,7 +31,7 @@ npm run build
 ## Current scope
 
 - React + TypeScript + Vite static prototype
-- Responsive assistant and preview panels, prompt examples, and accessible local demo feedback
+- Responsive assistant and preview panels, prompt examples, and accessible idle/loading/success/error local demo feedback
 - A validated `WebsiteSpec` data contract and sample fixture exist; the builder displays its validated sample through trusted React section components; prompt changes update only local demo data
 - A development-only mock API exposes `/api/health` and `/api/generate`; generated fixtures are deterministic and are not AI output
 - No production API, hosted AI provider, frontend API connection, AI editing, persistence, or export is implemented yet

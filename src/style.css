@@ -185,10 +185,14 @@ textarea:focus-visible {
   color: #ffb4a8;
   font-size: 11px;
 }
-.loading-message {
+.loading-message,
+.success-message {
   margin: 8px 0 0 37px;
   color: #d7b49e;
   font-size: 11px;
+}
+.success-message {
+  color: #a9d7b8;
 }
 .prompt-form {
   padding: 15px;

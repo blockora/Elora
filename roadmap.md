@@ -1026,7 +1026,7 @@ A reproducible development foundation.
 
 ## PHASE 1 — Product UI and Static Prototype
 
-Status: [ ] In progress — responsive landing screen and builder prototype, semantic navigation, examples, local sample preview, and accessible feedback are implemented. Broader UI acceptance criteria remain incomplete.
+Status: [ ] In progress — responsive landing screen and builder prototype, semantic navigation, examples, local sample preview, and accessible idle/loading/success/error feedback are implemented. Broader UI acceptance criteria remain incomplete; generation is still local demo behavior.
 
 ### Objectives
 
@@ -1042,6 +1042,7 @@ Build the main interface before connecting a real AI provider.
 - [x] Create the AI conversation panel (static initial message; user prompt appears in explicit demo mode).
 - [x] Create the preview panel (labeled visual sample, not a WebsiteSpec renderer).
 - [x] Implement loading states (local demo only).
+- [x] Implement success feedback (local demo only; no AI generation is implied).
 - [x] Implement error states (empty prompt validation).
 - [x] Add a responsive mobile layout.
 - [x] Add accessible form labels.

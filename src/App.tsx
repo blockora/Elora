@@ -121,7 +121,9 @@ export function App() {
   const [prompt, setPrompt] = useState('')
   const [preview, setPreview] = useState<WebsiteSpec>(restaurantWebsite)
   const [previewPrompt, setPreviewPrompt] = useState<string | null>(null)
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [status, setStatus] = useState<
+    'idle' | 'loading' | 'success' | 'error'
+  >('idle')
 
   if (page === 'landing') {
     return <LandingPage onStart={() => setPage('builder')} />
@@ -140,7 +142,7 @@ export function App() {
     window.setTimeout(() => {
       setPreview(createDemoSpec(nextPrompt))
       setPreviewPrompt(nextPrompt)
-      setStatus('idle')
+      setStatus('success')
     }, 180)
   }
 
@@ -206,6 +208,11 @@ export function App() {
                 Preparing your sample preview…
               </p>
             )}
+            {status === 'success' && (
+              <p className="success-message" role="status">
+                Sample preview updated locally. No AI was used.
+              </p>
+            )}
           </div>
 
           <form className="prompt-form" id="prompt" onSubmit={handleSubmit}>
@@ -215,7 +222,8 @@ export function App() {
               value={prompt}
               onChange={(event) => {
                 setPrompt(event.target.value)
-                if (status === 'error') setStatus('idle')
+                if (status === 'error' || status === 'success')
+                  setStatus('idle')
               }}
               rows={3}
               maxLength={500}
