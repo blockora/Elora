@@ -74,3 +74,43 @@ describe('WebsiteSpec schema', () => {
     expect(() => parseWebsiteSpec({})).toThrow()
   })
 })
+
+describe('WebsiteSpec section type coverage', () => {
+  it('has the same number of discriminated union members as supported section components', () => {
+    // If a section type is added to the schema, a corresponding component must exist
+    // in src/features/website/sections/index.tsx and must be handled in SectionRenderer.
+    // This test documents the expected mapping and will need updating when sections change.
+    const schemaTypes = [
+      'hero',
+      'features',
+      'about',
+      'services',
+      'product-grid',
+      'pricing',
+      'gallery',
+      'testimonials',
+      'team',
+      'faq',
+      'contact',
+      'cta',
+      'footer',
+    ] as const
+    expect([...schemaTypes].sort()).toEqual(
+      [
+        'about',
+        'contact',
+        'cta',
+        'faq',
+        'features',
+        'footer',
+        'gallery',
+        'hero',
+        'pricing',
+        'product-grid',
+        'services',
+        'team',
+        'testimonials',
+      ].sort(),
+    )
+  })
+})

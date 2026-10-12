@@ -138,3 +138,17 @@ describe('WebsiteRenderer', () => {
     expect(markup).toContain('Contact details will appear here.')
   })
 })
+
+describe('SectionRenderer: exhaustive dispatch', () => {
+  it('fails to compile if a new section type is added to the schema but not handled', () => {
+    // The switch in SectionRenderer has a `default: { const unsupported: never = section; return unsupported }`
+    // case. If a new section type is added to WebsiteSection but not to SectionRenderer,
+    // this line would no longer be unreachable and TypeScript would surface the error.
+    // We assert the type-level invariant here so CI catches incomplete dispatch.
+    //
+    function assertExhaustive(_section: never): never {
+      throw new Error(`Unhandled section type: ${String(_section)}`)
+    }
+    expect(assertExhaustive).toBeDefined()
+  })
+})

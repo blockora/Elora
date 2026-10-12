@@ -121,3 +121,46 @@ describe('builder prototype', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 })
+
+describe('builder accessibility', () => {
+  it('has no interactive element without an accessible name in the builder', () => {
+    const { container } = render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
+
+    const buttons = container.querySelectorAll('button')
+    const unnamed = Array.from(buttons).filter(
+      (button) =>
+        !button.textContent?.trim() && !button.getAttribute('aria-label'),
+    )
+    expect(unnamed).toHaveLength(0)
+  })
+
+  it('topbar buttons are present and undo/redo are initially disabled', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
+
+    expect(screen.getByRole('button', { name: /undo/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /redo/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /history/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /code/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /download zip/i })).toBeTruthy()
+
+    // Initially no undo/redo available
+    const undoButton = screen.getByRole('button', { name: /undo/i })
+    const redoButton = screen.getByRole('button', { name: /redo/i })
+    expect((undoButton as HTMLButtonElement).disabled).toBe(true)
+    expect((redoButton as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('version history panel shows version buttons and can be closed', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }))
+    fireEvent.click(screen.getByRole('button', { name: /history/i }))
+
+    expect(
+      screen.getByRole('heading', { name: /version history/i }),
+    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: /v1/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /close/i })).toBeTruthy()
+  })
+})

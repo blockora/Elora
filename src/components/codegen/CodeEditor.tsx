@@ -177,7 +177,11 @@ export function CodeEditor({ fileSystem, onChange, onSave }: CodeEditorProps) {
       ) : (
         <div className="codegen-layout">
           <aside className="codegen-tree" aria-label="Project files">
-            <ul className="codegen-tree-list">
+            <ul
+              className="codegen-tree-list"
+              role="listbox"
+              aria-label="Project files"
+            >
               {files.map((file) => (
                 <li key={file.path}>
                   <button
