@@ -1397,7 +1397,7 @@ A controlled code-generation environment.
 
 ## PHASE 9 — Deployment and GitHub Integration
 
-Status: [x] GitHub export implemented and documented; deployment pending live credentials
+Status: [x] Implemented (repository-side) — GitHub export and deployment documentation complete; live OAuth, repository creation, and deployment unverified
 
 ### Objectives
 
@@ -1417,11 +1417,11 @@ These approaches allow users to manage their code and hosting independently.
 - [x] Ensure users explicitly authorize repository access.
 - [x] Avoid requesting unnecessary GitHub permissions.
 - [x] Test repository creation failures.
-- [ ] Document deployment through a supported static host.
+- [x] Document deployment through a supported static host.
 - [x] Add deployment prerequisites.
 - [x] Define deployment status handling.
 - [x] Define rollback behavior.
-- [ ] Evaluate platform-hosted publishing separately.
+- [x] Evaluate platform-hosted publishing separately.
 
 ### Important hosting distinction
 
@@ -1548,6 +1548,83 @@ The following require live GitHub and/or Cloudflare credentials and are NOT clai
 - Server-side token storage.
 - A Cloudflare account and Wrangler configuration for platform deployment (if used).
 - The user's own hosting credentials for user-owned deployment (if used).
+
+#### Deployment through a supported static host (documented; live deployment unverified)
+
+The recommended deployment path for a generated website is a static host that serves the built artifact produced by the project's build step.
+
+This project itself is deployed as a static site with a Worker fetch handler. The same model applies to a user's exported project: build the project's static output and deploy it to a static host.
+
+Supported approach: Cloudflare Pages.
+
+Prerequisites:
+
+- A Cloudflare account.
+- The Wrangler CLI installed locally (npm install -g wrangler, or use npx wrangler).
+- A Cloudflare Pages project, or the ability to create one.
+- The built static output directory (for this project, dist/ after `npm run build`).
+
+Deployment steps (user-owned project):
+
+1. Build the exported project locally: run the project's build command to produce the static output.
+2. Create or select a Cloudflare Pages project in the Cloudflare dashboard.
+3. Connect the project's Git repository, or deploy the built output directly.
+4. Configure the build command and output directory to match the project.
+5. Deploy. Cloudflare Pages serves the static output at a *.pages.dev URL.
+
+Deployment steps (platform-hosted Elora):
+
+- The Elora application itself is deployed separately as a Worker + static assets.
+- Deploying Elora is different from deploying each user's generated project.
+- Elora produces the export artifact; the hosting of that artifact is the user's responsibility unless a platform-hosted publishing flow is added.
+
+Environment variables a deployment may need:
+
+- For Elora itself: SUPABASE_URL, SUPABASE_ANON_KEY, GEMINI_API_KEY, and any other service secrets, configured server-side.
+- For a user's deployed project: whatever the project's own build requires; Elora does not inject secrets into exported projects.
+
+#### Deployment status handling (documented as design/spec; live deployment unverified)
+
+Statuses:
+
+- Pending: the user requested an export or deploy; work has not started.
+- Building: the project build is in progress.
+- Deploying: the built artifact is being pushed to the host.
+- Live: the deployment is serving at its URL.
+- Failed: the build or deploy failed; a structured error is available.
+
+Behavior:
+
+- A new export clears any stale Live status for the previous deploy of the same project.
+- Failed statuses include the error that caused the failure.
+- Live status includes the serving URL when available.
+- Status is surfaced in the UI next to the export action.
+
+#### Rollback and recovery behavior (documented as design/spec; live deployment unverified)
+
+- Each export or deploy is a new build and a new deployment; prior deployments remain in the host's history where the host supports it.
+- Rollback is performed by the user through the hosting provider's interface or through the Git history of the exported repository, not by Elora.
+- A failed build or deploy does not publish a partial artifact: the build must succeed before deployment, and a failed deploy leaves the previous deployment serving.
+- If the exported repository is the source of truth, reverting a commit and redeploying restores the earlier state.
+- Elora never force-pushes to a user's repository; repository history is preserved.
+
+#### Platform-hosted publishing evaluation (documented as evaluation; not implemented)
+
+Platform-hosted publishing means Elora builds and hosts the user's generated website directly, rather than only exporting it for the user to host.
+
+Considerations:
+
+- Cost: each hosted project consumes storage, build minutes, and bandwidth. Provider limits and pricing must be evaluated before promising unrestricted free hosting.
+- Scaling: many independent projects mean many independent deployments, caches, and abuse surfaces.
+- Abuse: user-generated content published under a shared host requires content policies, rate limits, and takedown handling.
+- Domain and SSL: custom domains, certificates, and per-project routing add complexity.
+- Rollback and lifecycle: each published project needs a deployment history and a rollback path.
+
+Recommendation:
+
+- Defer platform-hosted publishing until the user-owned export path is stable and the cost/abuse model is evaluated.
+- Start with user-owned GitHub export and static-host deployment as the primary path.
+- Evaluate platform-hosted publishing as a separate, later feature with explicit limits.
 
 ---
 
