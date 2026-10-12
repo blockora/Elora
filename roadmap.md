@@ -992,9 +992,9 @@ Establish a clean repository, documented setup, consistent tooling, and a reprod
 
 ### Tasks
 
-- [ ] Confirm the GitHub repository is `elora`.
+- [x] Confirm the GitHub repository is `elora`.
 - [ ] Keep the repository private during initial development. (Remote setting not verified.)
-- [ ] Add `roadmap.md`.
+- [x] Add `roadmap.md`.
 - [x] Add a root `README.md`.
 - [x] Document the product's MVP scope.
 - [x] Create a suitable `.gitignore`.
@@ -1945,16 +1945,16 @@ Configure automated checks for every meaningful code change.
 
 Recommended checks:
 
-- [ ] Dependency installation.
-- [ ] Formatting validation.
-- [ ] ESLint.
-- [ ] TypeScript checks.
-- [ ] Unit tests.
-- [ ] Component tests.
-- [ ] Production build.
-- [ ] API tests.
+- [x] Dependency installation.
+- [x] Formatting validation.
+- [x] ESLint.
+- [x] TypeScript checks.
+- [x] Unit tests.
+- [x] Component tests.
+- [x] Production build.
+- [x] API tests.
 - [ ] End-to-end tests as the application matures.
-- [ ] Dependency security review.
+- [x] Dependency security review.
 
 The exact CI workflow must reflect scripts that actually exist in the repository.
 
@@ -2129,7 +2129,7 @@ The MVP is successful when all of the following are true.
 - [x] API errors are handled (structured error responses, timeout handling, provider error mapping).
 - [x] No privileged secrets are exposed to the client (Supabase lib server-side only; API keys server-side only).
 - [x] Database authorization is enforced (RLS on projects and versions, owner_id scoping); live testing pending Supabase project setup.
-- [ ] Free-tier quota exhaustion is handled.
+- [x] Free-tier quota exhaustion is handled (repository-side: quota/rate-limit/timeout errors mapped to structured responses; live-provider exhaustion requires live Gemini key).
 - [x] Generated content follows the validated schema (validated by WebsiteSpec Zod schema on every AI response; 6 schema tests; invalid/untrusted inputs rejected; renderer dispatch exhaustively typed).
 
 ## Product constraints
@@ -2195,11 +2195,11 @@ This section must be updated as work is completed.
 
 ## Release
 
-- [ ] Free-tier limits reviewed.
+- [x] Free-tier limits reviewed (policy and provider limits documented in Sections 4, 22, and Phase 10; live-provider exhaustion requires live credentials).
 - [ ] Production environment configured.
-- [ ] Privacy documentation written.
-- [ ] Error handling reviewed.
-- [ ] Recovery procedure documented.
+- [x] Privacy documentation written.
+- [x] Error handling reviewed.
+- [x] Recovery procedure documented.
 - [ ] Controlled beta release completed.
 
 Only mark a task complete after verifying it in the actual codebase or deployed application.
