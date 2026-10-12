@@ -1397,7 +1397,7 @@ A controlled code-generation environment.
 
 ## PHASE 9 — Deployment and GitHub Integration
 
-Status: [x] Implemented — repository-side complete; browser execution verified under Vitest/JSDOM, full browser (real Monaco + QuickJS WASM) verification pending manual review
+Status: [ ] Not started — architecture and abstractions implemented; documentation and remaining items pending
 
 ### Objectives
 
@@ -1411,12 +1411,12 @@ These approaches allow users to manage their code and hosting independently.
 
 ### Tasks
 
-- [ ] Document the GitHub export workflow.
-- [ ] Design GitHub authentication and permissions.
-- [ ] Implement repository creation or export where authorized.
-- [ ] Ensure users explicitly authorize repository access.
-- [ ] Avoid requesting unnecessary GitHub permissions.
-- [ ] Test repository creation failures.
+- [x] Document the GitHub export workflow.
+- [x] Design GitHub authentication and permissions.
+- [x] Implement repository creation or export where authorized.
+- [x] Ensure users explicitly authorize repository access.
+- [x] Avoid requesting unnecessary GitHub permissions.
+- [x] Test repository creation failures.
 - [ ] Document deployment through a supported static host.
 - [ ] Add deployment prerequisites.
 - [ ] Define deployment status handling.
@@ -1441,11 +1441,125 @@ A user can export a working website to their own repository or hosting workflow 
 
 GitHub export and a documented deployment workflow.
 
+### Security requirements
+
+- OAuth tokens are never hardcoded or committed.
+- Secrets (GitHub tokens, deployment credentials) remain server-side and are never shipped to the browser.
+- Repository permissions use least privilege: `public_repo` for writing to an existing user-owned repository, with separate, minimal scopes for repository creation.
+- Export writes only the intended project files through the GitHub Contents API; no arbitrary command execution, no shell, no filesystem access beyond the intended repository.
+- Repository names are validated before use; path-traversal patterns are not applicable to the GitHub API surface, but repository name validation prevents injection into repository identifiers.
+- GitHub API failures are handled safely and surfaced as structured error codes, including rate-limit normalization.
+- Retries are not unbounded; the export orchestration performs a single create-and-upload sequence and surfaces failures directly. No exponential-backoff or recursive retry loop is introduced at the repository level.
+- External deployment credentials remain server-side and are never embedded in generated project files.
+- No force-push behavior is introduced; repository creation and contents upload use the standard GitHub API.
+
+### Documentation status
+
+#### GitHub export workflow (implemented, locally verified)
+
+The GitHub export abstraction is implemented in `src/lib/github/`:
+
+- `types.ts` defines the permission scopes, result types, error codes, and error classification.
+- `index.ts` defines the `GitHubClient` interface and a `MockGitHubClient` used in deterministic tests, plus the `exportToGitHub` orchestration function.
+- `exportToGitHub` requires an authorized token before creating a repository or uploading contents, creates a repository only when the chosen name is available, uploads the project files as a single commit, and returns a structured success or failure result.
+
+#### Authorization flow (designed, not live-verified)
+
+1. The user initiates export to GitHub from the editor.
+2. The application redirects to GitHub's OAuth authorization endpoint with the scopes required for the chosen action.
+3. GitHub prompts the user to authorize the application.
+4. On approval, GitHub redirects back with an authorization code.
+5. The server exchanges the code for an access token and stores it server-side, associated with the user.
+6. The export uses the server-stored token; the browser never sees the token.
+
+Requested scopes and why they are needed:
+
+- `public_repo` — required to create commits and upload file contents to a repository the user owns. This is the minimum scope for writing to a public repository. A private-repository workflow would require `repo` instead.
+- Repository creation uses the same token; no separate personal access token is required from the user.
+
+#### Repository creation and file export (implemented, locally verified)
+
+- If the user provides a repository name that does not exist, the abstraction creates it and uploads the project files.
+- If the repository already exists, the abstraction uploads to the existing repository.
+- File upload is a single commit containing the entire project tree; individual file history is not rewritten.
+- The exported tree is the same tree the user sees in the editor's file manifest.
+
+#### Error states (implemented, locally verified)
+
+- Unauthenticated export is rejected before any GitHub API call.
+- Invalid or unrecognized tokens are rejected.
+- Repository name collisions return a `REPO_NAME_UNAVAILABLE` error.
+- Repository creation failures and upload failures return structured error codes.
+- GitHub rate-limit responses are normalized into a `RATE_LIMITED` error with a user-friendly message.
+- Unrecognized API responses fall back to `UNKNOWN_ERROR`.
+- All errors are classified through `classifyGitHubError` and surfaced to the caller; they are never thrown as raw API responses.
+
+#### Rate limits (designed, locally verified for classification)
+
+- GitHub's primary rate limit applies to requests per hour per token.
+- The abstraction normalizes rate-limit responses into a single `RATE_LIMITED` error code.
+- The user-facing message advises waiting and retrying.
+- The repository-side implementation does not perform unbounded retries; the caller decides whether to retry.
+
+#### Repository conflicts (implemented, locally verified)
+
+- Repository name collision is detected before creation and surfaced as `REPO_NAME_UNAVAILABLE`.
+- The user can choose a different name or export to the existing repository.
+
+#### Deployment prerequisites (not yet documented)
+
+To be documented before deployment is claimed complete:
+
+- A GitHub OAuth application with the callback URL configured.
+- Server-side storage for user tokens.
+- For Cloudflare Pages deployment: a Cloudflare account, Wrangler CLI, and the project's `wrangler.toml` or equivalent configuration.
+- For user-owned hosting: the user provides their own hosting; Elora only produces the export artifact.
+
+#### Deployment status handling (not yet documented)
+
+To be documented before deployment is claimed complete:
+
+- Pending: export accepted, build queued.
+- Building: the project is being built.
+- Live: the deployment is serving.
+- Failed: the build or deployment failed with a structured error.
+- The status is surfaced to the user and stale statuses are cleared on new exports.
+
+#### Rollback and recovery behavior (not yet documented)
+
+To be documented before deployment is claimed complete:
+
+- Each export is a new commit; previous deploys remain in the repository history.
+- Rollback is performed by the user through their hosting provider or Git history, not by Elora.
+- A failed export does not leave a partial repository; the upload is atomic per the GitHub Contents API semantics.
+
+#### Platform-hosted publishing (not yet evaluated)
+
+To be evaluated separately from user-owned GitHub export and static-host deployment.
+
+#### Live verification status
+
+The following require live GitHub and/or Cloudflare credentials and are NOT claimed as verified:
+
+- GitHub OAuth authorization flow (redirect, callback, token exchange).
+- Repository creation against the live GitHub API.
+- File upload to a live repository.
+- Deployment to a live static host.
+- Signed-in user token storage and per-user repository isolation.
+
+#### What requires live credentials
+
+- A GitHub OAuth application (client ID, callback URL).
+- A user authorizing the application against their GitHub account.
+- Server-side token storage.
+- A Cloudflare account and Wrangler configuration for platform deployment (if used).
+- The user's own hosting credentials for user-owned deployment (if used).
+
 ---
 
 ## PHASE 10 — Production Hardening and Public Beta
 
-Status: [x] Implemented — repository-side complete; browser execution verified under Vitest/JSDOM, full browser (real Monaco + QuickJS WASM) verification pending manual review
+Status: [ ] Not started — architecture and abstractions implemented; documentation and remaining items pending
 
 ### Objectives
 
