@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { verifyAuthIfRequired, type AuthVerificationOptions } from './auth'
 import { restaurantWebsite } from '../features/website/examples'
 import { parseWebsiteSpec, type WebsiteSpec } from '../features/website/schema'
 
@@ -97,11 +98,14 @@ export interface ApiHandlerOptions {
     maxRequests: number
     windowMs: number
   }
+  /** Server-side Supabase auth verification options. */
+  auth?: AuthVerificationOptions
 }
 
 const defaultOptions: ApiHandlerOptions = {
   timeoutMs: 30000,
   rateLimit: undefined,
+  auth: undefined,
 }
 
 export function createApiHandler(options: ApiHandlerOptions = {}) {
@@ -110,6 +114,7 @@ export function createApiHandler(options: ApiHandlerOptions = {}) {
     editProvider,
     timeoutMs = 30000,
     rateLimit,
+    auth,
   } = { ...defaultOptions, ...options }
 
   // Simple in-memory rate limiter
@@ -162,6 +167,30 @@ export function createApiHandler(options: ApiHandlerOptions = {}) {
           },
           429,
           { 'retry-after': String(rateLimitResult.retryAfter) },
+        )
+      }
+    }
+
+    // Server-side authentication (when enabled)
+    // Fails closed: if auth is required but verification fails, reject.
+    if (auth?.requireAuth) {
+      const authResult = await verifyAuthIfRequired(request, auth)
+      if (!authResult.allowed) {
+        const code =
+          authResult.reason === 'missing_token'
+            ? 'UNAUTHENTICATED'
+            : 'INVALID_SESSION'
+        return json(
+          {
+            error: {
+              code,
+              message:
+                code === 'UNAUTHENTICATED'
+                  ? 'Authentication is required. Provide a valid Supabase access token.'
+                  : 'Your session is invalid or has expired. Please sign in again.',
+            },
+          },
+          401,
         )
       }
     }
