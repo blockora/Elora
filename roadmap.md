@@ -2130,7 +2130,7 @@ The MVP is successful when all of the following are true.
 - [x] No privileged secrets are exposed to the client (Supabase lib server-side only; API keys server-side only).
 - [x] Database authorization is enforced (RLS on projects and versions, owner_id scoping); live testing pending Supabase project setup.
 - [ ] Free-tier quota exhaustion is handled.
-- [ ] Generated content follows the validated schema.
+- [x] Generated content follows the validated schema (validated by WebsiteSpec Zod schema on every AI response; 6 schema tests; invalid/untrusted inputs rejected; renderer dispatch exhaustively typed).
 
 ## Product constraints
 
