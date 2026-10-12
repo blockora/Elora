@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS projects (
 -- Index for efficient owner-based lookups
 CREATE INDEX IF NOT EXISTS idx_projects_owner_id ON projects(owner_id);
 
--- Trigger to automatically update updated_at timestamp
+-- Trigger function: auto-update updated_at timestamp
+-- Must be created BEFORE the trigger that uses it.
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -23,21 +24,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_projects_updated_at
+-- Trigger: auto-update updated_at on row update
+CREATE OR REPLACE TRIGGER update_projects_updated_at
     BEFORE UPDATE ON projects
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- No ID change expected for projects, but enforce it anyway
+-- Trigger function: prevent project ID from being changed
+-- Must be created BEFORE the trigger that uses it.
+-- Returns TRIGGER (not TEXT) because it is a trigger function.
+CREATE OR REPLACE FUNCTION validate_projects_id_unchanged()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.id IS DISTINCT FROM NEW.id THEN
+        RAISE EXCEPTION 'Project ID cannot be changed';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger: enforce that projects.id cannot be changed
 CREATE OR REPLACE TRIGGER validate_projects_id_unchanged
     BEFORE UPDATE ON projects
     FOR EACH ROW
-    WHEN (OLD.id IS DISTINCT FROM NEW.id)
-    EXECUTE FUNCTION raise_exception('Project ID cannot be changed');
-
-CREATE OR REPLACE FUNCTION raise_exception(msg TEXT)
-RETURNS TEXT AS $$
-BEGIN
-    RAISE EXCEPTION '%', msg;
-END;
-$$ LANGUAGE plpgsql;
+    EXECUTE FUNCTION validate_projects_id_unchanged();

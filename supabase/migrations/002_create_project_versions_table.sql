@@ -1,5 +1,18 @@
 -- Migration: Create project_versions table
 -- Stores version snapshots for project history and recovery
+--
+-- IMPORTANT: PostgreSQL CHECK constraints cannot contain subqueries that
+-- reference other tables. The previous version of this migration included
+-- a CHECK constraint "project_versions_owner_matches_project" with an
+-- EXISTS (SELECT ...) subquery, which is not valid in PostgreSQL.
+--
+-- The owner/project invariant is instead enforced by:
+--   1. The foreign key on project_id -> projects(id), which guarantees the
+--      referenced project exists.
+--   2. The validate_project_version_owner() trigger function, which verifies
+--      that owner_id matches the project's owner at insert time.
+--   3. Row Level Security policies (in migration 003), which enforce
+--      owner-based access control at the policy level.
 
 CREATE TABLE IF NOT EXISTS project_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -9,12 +22,7 @@ CREATE TABLE IF NOT EXISTS project_versions (
     spec_snapshot JSONB NOT NULL,
     change_summary TEXT CONSTRAINT project_versions_change_summary_max_length CHECK (char_length(change_summary) <= 240),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT project_versions_unique_version_per_project UNIQUE (project_id, version_number),
-    CONSTRAINT project_versions_owner_matches_project CHECK (
-        EXISTS (
-            SELECT 1 FROM projects p WHERE p.id = project_versions.project_id AND p.owner_id = project_versions.owner_id
-        )
-    )
+    CONSTRAINT project_versions_unique_version_per_project UNIQUE (project_id, version_number)
 );
 
 -- Index for efficient version lookup by project
@@ -23,12 +31,9 @@ CREATE INDEX IF NOT EXISTS idx_project_versions_project_id ON project_versions(p
 -- Index for efficient version ordering
 CREATE INDEX IF NOT EXISTS idx_project_versions_version_number ON project_versions(project_id, version_number DESC);
 
--- Trigger to validate owner matches project on insert
-CREATE OR REPLACE TRIGGER validate_project_versions_owner
-    BEFORE INSERT OR UPDATE ON project_versions
-    FOR EACH ROW
-    EXECUTE FUNCTION validate_project_version_owner();
-
+-- Trigger function: validate owner matches project on insert, auto-increment version number
+-- Must be created BEFORE the trigger that uses it.
+-- Fires only on INSERT because project versions are immutable snapshots (no updates).
 CREATE OR REPLACE FUNCTION validate_project_version_owner()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -38,14 +43,22 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'Owner ID does not match project owner';
     END IF;
-    
+
     -- Auto-increment version number if not provided
     IF NEW.version_number IS NULL THEN
         SELECT COALESCE(MAX(version_number), 0) + 1 INTO NEW.version_number
         FROM project_versions
         WHERE project_id = NEW.project_id;
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Trigger: validate owner + auto-increment version number on insert only
+-- Project versions are immutable snapshots; UPDATE is not allowed.
+-- The RLS policies (migration 003) enforce no UPDATE for authenticated users.
+CREATE OR REPLACE TRIGGER validate_project_version_owner
+    BEFORE INSERT ON project_versions
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_project_version_owner();
