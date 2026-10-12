@@ -130,19 +130,58 @@ describe('API handler', () => {
   })
 
   it('maps provider quota errors to QUOTA_EXCEEDED response', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const quotaProvider: AIProvider & { editWebsite?: never } = {
       generateWebsite: vi
         .fn()
-        .mockRejectedValue(new Error('Free quota exceeded for this project')),
+        .mockRejectedValue(
+          new Error('Free quota exceeded with upstream diagnostic details'),
+        ),
     }
     const handler = createApiHandler({ provider: quotaProvider })
-    const response = await handler(post({ prompt: 'A bakery' }))
-    expect(response.status).toBe(503)
-    const payload = await response.json()
-    expect(payload).toMatchObject({
-      error: { code: 'QUOTA_EXCEEDED' },
-    })
-    expect(payload.error.message).toContain('temporarily unavailable')
+    try {
+      const response = await handler(post({ prompt: 'A bakery' }))
+      expect(response.status).toBe(503)
+      const payload = await response.json()
+      expect(payload).toMatchObject({
+        error: { code: 'QUOTA_EXCEEDED' },
+      })
+      expect(payload.error.message).toContain('temporarily unavailable')
+      expect(errorSpy).toHaveBeenCalledWith(
+        'generation provider error (details withheld)',
+      )
+      expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(
+        'upstream diagnostic details',
+      )
+    } finally {
+      errorSpy.mockRestore()
+    }
+  })
+
+  it('sanitizes upstream unavailability errors', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const unavailableProvider: AIProvider = {
+      generateWebsite: vi
+        .fn()
+        .mockRejectedValue(
+          new Error('Gemini API returned HTTP 503 with transient diagnostics'),
+        ),
+    }
+    const handler = createApiHandler({ provider: unavailableProvider })
+    try {
+      const response = await handler(post({ prompt: 'A bakery' }))
+      const payload = await response.json()
+      expect(response.status).toBe(503)
+      expect(payload).toMatchObject({
+        error: { code: 'PROVIDER_UNAVAILABLE' },
+      })
+      expect(JSON.stringify(payload)).not.toContain('transient diagnostics')
+      expect(errorSpy).toHaveBeenCalledWith(
+        'generation provider error (details withheld)',
+      )
+    } finally {
+      errorSpy.mockRestore()
+    }
   })
 
   it('maps provider authentication errors to PROVIDER_AUTH_ERROR response', async () => {

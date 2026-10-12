@@ -382,7 +382,7 @@ async function executeWithTimeout<T>(
     // Map known error patterns to user-friendly messages
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error'
-    console.error(`${operationName} error:`, errorMessage)
+    console.error(`${operationName} provider error (details withheld)`)
 
     if (
       typeof errorMessage === 'string' &&
@@ -404,6 +404,21 @@ async function executeWithTimeout<T>(
         {
           error: {
             code: 'QUOTA_EXCEEDED',
+            message: `The ${operationName} service is temporarily unavailable. Please try again later.`,
+          },
+        },
+        503,
+      )
+    }
+
+    if (
+      typeof errorMessage === 'string' &&
+      /unavailable|503/i.test(errorMessage)
+    ) {
+      return json(
+        {
+          error: {
+            code: 'PROVIDER_UNAVAILABLE',
             message: `The ${operationName} service is temporarily unavailable. Please try again later.`,
           },
         },

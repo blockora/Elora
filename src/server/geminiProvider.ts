@@ -1,6 +1,59 @@
 import { GoogleGenAI } from '@google/genai'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 import { websiteSpecSchema } from '../features/website/schema'
+
+const geminiJsonSchemaProperties = new Set([
+  '$defs',
+  '$id',
+  '$ref',
+  '$anchor',
+  'type',
+  'format',
+  'title',
+  'description',
+  'enum',
+  'items',
+  'prefixItems',
+  'minimum',
+  'maximum',
+  'anyOf',
+  'oneOf',
+  'properties',
+  'additionalProperties',
+  'required',
+])
+
+function toGeminiJsonSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) {
+    return schema.map(toGeminiJsonSchema)
+  }
+
+  if (schema === null || typeof schema !== 'object') {
+    return schema
+  }
+
+  const converted: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(schema)) {
+    if (key === 'const') {
+      converted.enum = [value]
+    } else if (key === 'properties' || key === '$defs') {
+      const schemaMap =
+        value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+      converted[key] = Object.fromEntries(
+        Object.entries(schemaMap).map(([name, propertySchema]) => [
+          name,
+          toGeminiJsonSchema(propertySchema),
+        ]),
+      )
+    } else if (geminiJsonSchemaProperties.has(key)) {
+      converted[key] = toGeminiJsonSchema(value)
+    }
+  }
+  return converted
+}
+
+const websiteSpecJsonSchema = toGeminiJsonSchema(
+  websiteSpecSchema.toJSONSchema(),
+)
 
 export interface GeminiProviderConfig {
   apiKey: string
@@ -16,7 +69,7 @@ export class GeminiProvider {
       throw new Error('Gemini API key is required')
     }
     this.ai = new GoogleGenAI({ apiKey: config.apiKey })
-    this.model = config.model || 'gemini-2.5-flash'
+    this.model = config.model || 'gemini-flash-lite-latest'
   }
 
   async generateWebsite(input: { prompt: string }): Promise<unknown> {
@@ -41,23 +94,15 @@ The user will provide a prompt describing the website they want. Generate a comp
 
 Respond with a valid JSON object matching this exact schema:
 
-${JSON.stringify(zodToJsonSchema(websiteSpecSchema as never), null, 2)}`
+${JSON.stringify(websiteSpecJsonSchema, null, 2)}`
 
     const response = await this.ai.models.generateContent({
       model: this.model,
-      contents: [
-        {
-          role: 'system',
-          parts: [{ text: systemInstruction }],
-        },
-        {
-          role: 'user',
-          parts: [{ text: userPrompt }],
-        },
-      ],
+      contents: userPrompt,
       config: {
+        systemInstruction,
         responseMimeType: 'application/json',
-        responseSchema: zodToJsonSchema(websiteSpecSchema as never),
+        responseJsonSchema: websiteSpecJsonSchema,
       },
     })
 
@@ -93,32 +138,25 @@ ${JSON.stringify(input.currentSpec, null, 2)}
 
 Respond with the complete updated specification as a valid JSON object matching this exact schema:
 
-${JSON.stringify(zodToJsonSchema(websiteSpecSchema as never), null, 2)}
+${JSON.stringify(websiteSpecJsonSchema, null, 2)}
 
 Also include a "changeSummary" field with a brief description of what was changed.`
 
     const response = await this.ai.models.generateContent({
       model: this.model,
-      contents: [
-        {
-          role: 'system',
-          parts: [{ text: systemInstruction }],
-        },
-        {
-          role: 'user',
-          parts: [{ text: userPrompt }],
-        },
-      ],
+      contents: userPrompt,
       config: {
+        systemInstruction,
         responseMimeType: 'application/json',
-        responseSchema: {
-          type: 'OBJECT',
+        responseJsonSchema: {
+          type: 'object',
           properties: {
-            spec: zodToJsonSchema(websiteSpecSchema as never),
-            changeSummary: { type: 'STRING' },
+            spec: websiteSpecJsonSchema,
+            changeSummary: { type: 'string' },
           },
           required: ['spec', 'changeSummary'],
-        } as never,
+          additionalProperties: false,
+        },
       },
     })
 
