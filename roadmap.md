@@ -1397,7 +1397,7 @@ A controlled code-generation environment.
 
 ## PHASE 9 — Deployment and GitHub Integration
 
-Status: [ ] Not started — architecture and abstractions implemented; documentation and remaining items pending
+Status: [x] GitHub export implemented and documented; deployment pending live credentials
 
 ### Objectives
 
@@ -1418,9 +1418,9 @@ These approaches allow users to manage their code and hosting independently.
 - [x] Avoid requesting unnecessary GitHub permissions.
 - [x] Test repository creation failures.
 - [ ] Document deployment through a supported static host.
-- [ ] Add deployment prerequisites.
-- [ ] Define deployment status handling.
-- [ ] Define rollback behavior.
+- [x] Add deployment prerequisites.
+- [x] Define deployment status handling.
+- [x] Define rollback behavior.
 - [ ] Evaluate platform-hosted publishing separately.
 
 ### Important hosting distinction
@@ -1506,18 +1506,14 @@ Requested scopes and why they are needed:
 - Repository name collision is detected before creation and surfaced as `REPO_NAME_UNAVAILABLE`.
 - The user can choose a different name or export to the existing repository.
 
-#### Deployment prerequisites (not yet documented)
-
-To be documented before deployment is claimed complete:
+#### Deployment prerequisites (documented as design/spec; live deployment unverified)
 
 - A GitHub OAuth application with the callback URL configured.
 - Server-side storage for user tokens.
 - For Cloudflare Pages deployment: a Cloudflare account, Wrangler CLI, and the project's `wrangler.toml` or equivalent configuration.
 - For user-owned hosting: the user provides their own hosting; Elora only produces the export artifact.
 
-#### Deployment status handling (not yet documented)
-
-To be documented before deployment is claimed complete:
+#### Deployment status handling (documented as design/spec; live deployment unverified)
 
 - Pending: export accepted, build queued.
 - Building: the project is being built.
@@ -1525,9 +1521,7 @@ To be documented before deployment is claimed complete:
 - Failed: the build or deployment failed with a structured error.
 - The status is surfaced to the user and stale statuses are cleared on new exports.
 
-#### Rollback and recovery behavior (not yet documented)
-
-To be documented before deployment is claimed complete:
+#### Rollback and recovery behavior (documented as design/spec; live deployment unverified)
 
 - Each export is a new commit; previous deploys remain in the repository history.
 - Rollback is performed by the user through their hosting provider or Git history, not by Elora.
@@ -1559,7 +1553,7 @@ The following require live GitHub and/or Cloudflare credentials and are NOT clai
 
 ## PHASE 10 — Production Hardening and Public Beta
 
-Status: [ ] Not started — architecture and abstractions implemented; documentation and remaining items pending
+Status: [ ] Not started — no work started
 
 ### Objectives
 
@@ -1601,7 +1595,7 @@ An MVP ready for controlled public testing.
 
 # 17. Full-Stack Generation — Future Phase
 
-Status: [x] Implemented — repository-side complete; browser execution verified under Vitest/JSDOM, full browser (real Monaco + QuickJS WASM) verification pending manual review
+Status: [ ] Not started — no work started
 
 This phase begins only after the frontend builder is stable.
 
