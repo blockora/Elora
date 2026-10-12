@@ -35,15 +35,22 @@ export function loadServerConfig(): ServerConfig {
     )
   }
 
+  const timeoutMs = Number(process.env.API_TIMEOUT_MS)
+  const maxRequests = Number(process.env.RATE_LIMIT_MAX_REQUESTS)
+  const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS)
+
   return {
     providerType,
     geminiApiKey,
     geminiModel,
-    timeoutMs: 30000,
-    rateLimit: {
-      maxRequests: 30,
-      windowMs: 60000,
-    },
+    timeoutMs: Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000,
+    rateLimit:
+      Number.isFinite(maxRequests) &&
+      Number.isFinite(windowMs) &&
+      maxRequests > 0 &&
+      windowMs > 0
+        ? { maxRequests, windowMs }
+        : { maxRequests: 30, windowMs: 60000 },
   }
 }
 

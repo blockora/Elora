@@ -1664,6 +1664,119 @@ Make Elora reliable enough for users beyond the developer.
 
 The main user journey works reliably, failures are understandable, user data is protected by tested access controls, and deployment procedures are documented.
 
+### Review results (repository-side, this session)
+
+#### Authentication and authorization review
+
+- Supabase email/password authentication is used via `@supabase/supabase-js`.
+- The `AuthService` in `src/lib/supabase/auth.ts` provides sign-in, sign-up, sign-out, session, and auth-state change subscription.
+- `AuthConfig` requires both `supabaseUrl` and `supabaseAnonKey` and validates them.
+- The Supabase anon key is a public key intended for client-side use; it is not a secret.
+- The Supabase service role key is used only by `createServerClient()` and is guarded by `isServerSide` routing in `src/lib/supabase/config.ts`.
+- `src/lib/supabase/` is imported only by server code; it is not imported by any client-facing module, so neither the anon key nor the service role key is shipped to the browser.
+- The API server (`src/server/api.ts`) does not currently verify Supabase session tokens on `/api/generate` or `/api/edit`. In production, these endpoints should be gated behind authentication or deployment-layer access control.
+
+#### API key handling review
+
+- `GEMINI_API_KEY` is read server-side in `src/server/config.ts` and passed to the Gemini provider. It is not shipped to the browser.
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` are read server-side in `src/lib/supabase/config.ts`. The anon key is public by design; the service role key is restricted to server-side client creation.
+- No API keys are hardcoded in source files or committed to the repository.
+- The `.env` file (if present) is not committed; CI and deployment inject secrets through environment variables.
+
+#### Database access policy review
+
+- Row Level Security is enabled on `projects` and `project_versions` in `supabase/migrations/003_enable_rls_and_policies.sql`.
+- All RLS policies require `auth.uid() = owner_id`, so users can only access their own projects and versions.
+- `project_versions` has no UPDATE policy, making versions immutable snapshots.
+- A service-role policy grants full access for server-side operations; the service role key is server-side only.
+- `projects.owner_id` references `auth.users(id)` with `ON DELETE CASCADE`, so project data is cleaned up when a user account is deleted.
+- The `projects` table enforces name length (<=80) and description length (<=240) constraints.
+
+#### API request limits
+
+- The API handler supports configurable rate limiting via `ApiHandlerOptions.rateLimit` (`maxRequests`, `windowMs`).
+- Rate limiting is implemented in-memory per handler instance.
+- Rate limiting is NOT enabled by default; `defaultOptions.rateLimit` is `undefined`.
+- This session makes rate limiting configurable via environment variables:
+  - `RATE_LIMIT_MAX_REQUESTS` (e.g. 30)
+  - `RATE_LIMIT_WINDOW_MS` (e.g. 60000)
+  - `API_TIMEOUT_MS` (e.g. 30000)
+- For multi-instance deployments, per-instance rate limiting is insufficient; a shared store (D1, Redis, or the hosting platform's rate limiting) is needed.
+
+#### Provider timeout handling
+
+- The API handler uses `executeWithTimeout` with an `AbortController` and configurable `timeoutMs` (default 30000).
+- Timeouts produce a `GENERATION_TIMEOUT` response (504).
+- The Gemini provider and mock provider both respect the abort signal where applicable.
+
+#### Abuse protection
+
+- Current abuse protection is limited to in-memory rate limiting (when enabled) and input validation.
+- No CAPTCHA, no project quotas, no generated-content moderation, and no per-user usage limits are implemented.
+- For public beta, add per-user quotas, content guidelines, and monitoring before opening access broadly.
+
+#### Privacy documentation
+
+See "Known limitations" below.
+
+#### Data deletion behavior
+
+- User account deletion triggers `ON DELETE CASCADE` on `projects` and `project_versions`.
+- Generated website artifacts (ZIP exports, GitHub exports) are not automatically deleted when a user account is deleted; they live in the user's own GitHub repository or local download.
+- A data deletion procedure should document how a user or administrator can delete all data associated with a user across Supabase tables and any exported artifacts.
+
+#### Error reporting
+
+- Server errors are logged via `console.error` in the API handler's error path.
+- User-facing errors are structured (`{ code, message }`) and do not expose provider internals.
+- No external error-reporting service (e.g. Sentry) is integrated.
+- For public beta, integrate an error-reporting service and redact any sensitive data from logs.
+
+#### Uptime and failure monitoring
+
+- No uptime or failure monitoring is configured.
+- The `/api/health` endpoint can serve as a liveness probe for the hosting platform.
+- For public beta, add uptime monitoring (e.g. the hosting platform's built-in checks or a free external monitor) and alert on failures.
+
+#### Package vulnerabilities
+
+- `npm audit` reports 2 low-severity advisories for `dompurify@3.4.15`, introduced transitively by `monaco-editor@0.57.0` (via `@monaco-editor/react@4.7.0`).
+- These affect DOMPurify's IN_PLACE mode with specific hook configurations; they are low severity.
+- The project does not call DOMPurify directly; Monaco uses it internally for editor content sanitization.
+- Resolution requires a `monaco-editor` release that bumps `dompurify`; no workaround is applied in this project.
+- No other vulnerabilities are reported.
+
+#### Third-party licenses
+
+- `react`, `react-dom`: MIT
+- `@monaco-editor/react`: MIT
+- `monaco-editor` (transitive): MIT
+- `quickjs-emscripten`: MIT
+- `zod`: MIT
+- `@supabase/supabase-js`: MIT
+- `@google/genai`: Apache-2.0
+- `jszip`: MIT or GPL-3.0-or-later (MIT option applies)
+- `dompurify` (transitive): MPL-2.0 or Apache-2.0 (Apache-2.0 option applies)
+- No GPL-3.0-only or AGPL dependencies that would require open-sourcing the application.
+
+#### Deployment configuration verification
+
+- No `wrangler.toml` or Cloudflare Pages configuration is committed yet; deployment configuration is pending.
+- The Vite build produces a static `dist/` output plus a Worker-compatible API handler in `src/server/api.ts`.
+- For Cloudflare Pages deployment, the API handler must run as a Worker (via `workers-degenerate` or a Worker entrypoint) or the API must be served from a separate Worker.
+- The `src/server/viteApiPlugin.ts` exposes the API during Vite development only; it is not a production server.
+
+#### Known limitations
+
+- The API endpoints `/api/generate` and `/api/edit` are not authenticated; anyone with the URL can call them (subject to rate limiting when enabled). Production deployments should add authentication.
+- Rate limiting is per-instance and in-memory; it does not protect across multiple instances or persist across restarts.
+- The Gemini provider requires `GEMINI_API_KEY`; without it, generation falls back to the mock provider or returns `PROVIDER_NOT_CONFIGURED`.
+- Supabase integration requires a live Supabase project with the migrations applied; the repository contains the migrations but does not create the project.
+- GitHub export requires a live GitHub OAuth application and user authorization; the repository-side abstraction is implemented and tested with a mock, but live flows are not verified.
+- DOMPurify carries 2 low-severity advisories via Monaco; no workaround is applied.
+- Generated website content is not moderated; users are responsible for what they generate and export.
+- The application is a frontend + API prototype; production hosting, monitoring, and abuse protection are not yet configured.
+
 ### Deliverable
 
 An MVP ready for controlled public testing.
