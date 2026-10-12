@@ -1743,7 +1743,8 @@ See "Known limitations" below.
 - `npm audit` reports 2 low-severity advisories for `dompurify@3.4.15`, introduced transitively by `monaco-editor@0.57.0` (via `@monaco-editor/react@4.7.0`).
 - These affect DOMPurify's IN_PLACE mode with specific hook configurations; they are low severity.
 - The project does not call DOMPurify directly; Monaco uses it internally for editor content sanitization.
-- Resolution requires a `monaco-editor` release that bumps `dompurify`; no workaround is applied in this project.
+- **Upgrade assessment:** The fixed DOMPurify version is 3.4.16. Monaco 0.57.0 (latest stable as of this writing) ships DOMPurify 3.4.15 and has no release that bumps it. An npm override can change the installed `dompurify` dependency, but Monaco distributes its own bundled copy of DOMPurify in its editor artifacts; changing the npm dependency does not make the editor use the patched code, and Monaco would need to be rebuilt by the maintainers. A postinstall workaround exists in Monaco issue #5517 but is not applied here because it targets a specific ESM path and has not been verified to cover every distribution format this project uses.
+- **Decision:** No dependency override is applied. The advisories remain documented as low severity with no safe automatic resolution. The project does not call DOMPurify directly, which reduces exposure. If a future Monaco release ships DOMPurify 3.4.16+, the upgrade should be applied and retested.
 - No other vulnerabilities are reported.
 
 #### Third-party licenses
